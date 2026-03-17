@@ -1,0 +1,40 @@
+/* pages/deviceManager/serviceAddress/serviceAddress.wxss */
+
+
+@import "../deviceEntry/deviceEntry.wxss";
+
+
+.param-search-picker {
+  width: 100%;
+  height: 80rpx;
+  padding: 0 30rpx;
+  border: 2rpx solid #e6e4e4;
+  border-radius: 8rpx;
+  background: #f7f7f7;
+  font-size: 26rpx;
+  display: flex;
+  align-items: center;
+  color: #666;
+  display: flex;
+  justify-content: space-between;
+}
+
+.param-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  margin-bottom: 15rpx;
+  flex-wrap: wrap;
+}
+
+
+.modal-radio-group {
+  padding: 0 30rpx 20rpx;
+}
+
+.radio-item {
+  display: block;
+  padding: 20rpx 0;
+  font-size: 24rpx;
+  color: #666;
+}

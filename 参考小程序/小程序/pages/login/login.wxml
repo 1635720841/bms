@@ -1,0 +1,23 @@
+<view class="container">
+  <!-- <view class="title">SW BMS</view> -->
+  <image src="/images/icon_login_sw.png"  style="width: 300rpx;height: 150rpx;" />
+  <view class="input-group">
+    <input class="input" placeholder="请输入账号" value="{{account}}" bindinput="onAccountInput" />
+    <view class="line"></view>
+    <input class="input" placeholder="请输入密码" password="true" value="{{password}}" bindinput="onPasswordInput" />
+    <view class="line"></view>
+  </view>
+  <view class="btn-group">
+    <!-- 金属质感按钮 -->
+    <!-- <view class="metallic-button chrome {{activeSize}} {{isPressed ? 'pressed' : ''}}" bindtouchstart="buttonTouchStart" bindtouchend="buttonTouchEnd" bindtouchcancel="buttonTouchCancel" catchtap="onLogin">
+      <view class="button-content">
+        <view class="button-text">登录</view>
+      </view>
+      <view class="shine"></view>
+      <view class="press-effect chrome {{isPressed ? 'active' : ''}}"></view>
+      <view class="inner-shadow {{isPressed ? 'active' : ''}}"></view>
+    </view> -->
+
+    <button class="btn-metal btn-metal--hybrid" style="width: 400rpx;height: 100rpx;" catchtap="onLogin">登录</button>
+  </view>
+</view>

@@ -1,0 +1,82 @@
+<!--pages/deviceManager/serviceTime/serviceTime.wxml-->
+<view class="container">
+
+  <view style="width: 96%;display: flex;flex-direction: column;padding: 30rpx;">
+    <view style="display: flex;align-items: center;justify-content: space-between;">
+      <text class="text-9oag"> <text class="cuIcon-titles" style="color:var(--cyan);"></text>设备编码 (逗号、换行分割)</text>
+      <text wx:if="{{!!validDevList}}">{{validDevList.length}}</text>
+      <text class="iconfont icon-iconfontscan" style="font-size:48rpx;color: var(--mainThemeText);padding: 20rpx 30rpx;" catch:tap="onScanCode"></text>
+    </view>
+
+
+    <view class="box_kddf">
+      <textarea class="text-jfaf" value="{{devString}}" maxlength="-1"  bindinput="onInputDev" />
+      <text wx:if="{{devString}}" class="cuIcon-close" style="padding: 10rpx 30rpx; font-size: 32rpx;" catch:tap="clearInputDevs"></text>
+      <text class="text-ad32" catch:tap="onPreview">识别</text>
+    </view>
+  </view>
+
+  <view wx:if="{{isPreview}}" style="width: 96%;display: flex;flex-direction: column;padding: 30rpx;">
+    <view style="display: flex;align-items: center;justify-content: space-between;">
+      <text class="text-9oag"> <text class="cuIcon-titles" style="color:var(--cyan);"></text>清单预览</text>
+      <text wx:if="{{!!validDevList}}">{{validDevList.length}}</text>
+    </view>
+
+
+    <view class="box_kddf" style="padding: 10rpx;">
+      <scroll-view style="width: 100%;height: 100%;" scroll-y="{{true}}">
+        <block wx:for="{{validDevList}}" wx:key="item">
+          <view class="box_kska">
+            <text>{{item}}</text>
+          </view>
+        </block>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 参数查找下拉选择板块 -->
+  <view style="width: 96%;padding: 30rpx;display: flex;flex-direction: column;">
+    <view class="box_sjfk">
+      <text class="text-plza"> <text class="cuIcon-titles" style="color:var(--cyan);"></text>修改方式</text>
+      <radio-group bindchange="wayChange" style="color: gray;margin-top: 30rpx;">
+        <label>
+          <radio value="1" style="transform: scale(0.8); " checked="{{wayOption ==1}}" /> 增加天数
+        </label>
+        <label>
+          <radio value="3" style="margin-left: 50rpx;transform: scale(0.8); " checked="{{wayOption ==3}}" /> 减少天数
+        </label>
+        <label>
+          <radio style="margin-left: 50rpx;transform: scale(0.8); " value="2" checked="{{wayOption == 2}}" /> 按日期
+        </label>
+      </radio-group>
+
+      <input wx:if="{{wayOption == 1 || wayOption == 3}}" type="number" class="param-search-picker" style="margin-top: 30rpx;" maxlength="4" bindinput="onInputDays" placeholder="{{days?days:'请输入天数'}}"/>
+
+      <!-- <picker class="param-search-picker" wx:if="{{wayOption == 2}}" mode="date" value="{{date}}" start="{{startTime}}" bindchange="bindDateChange">
+        <view style="width: 100%; display: flex;align-items: center;justify-content: space-between;">
+          <text style="flex:1;">{{date?date:'选择日期'}}</text>
+          <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+        </view>
+      </picker> -->
+
+      <view wx:if="{{wayOption == 2}}" style="width: 100%;display: flex;flex-direction: column;margin-top: 30rpx;">
+     <picker   style="width: 100%;" mode="date" value="{{date}}" start="{{startTime}}" bindchange="bindDateChange">
+      <view class="param-search-picker" style="width: 100%;">{{date?date:'选择日期'}}
+        <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+      </view>
+    </picker>
+  </view>
+
+
+    </view>
+
+  </view>
+
+
+
+  <view class="dialog-buttons" style="margin:50rpx; width: 90%;">
+    <!-- <button class="dialog-btn cancel default" catch:tap="onPreview">清单预览</button> -->
+    <button class="dialog-btn confirm default" catchtap="onSubmitTime">提交</button>
+
+  </view>
+</view>

@@ -1,0 +1,94 @@
+/**
+ * BMS 深色主题配色变量（对齐参考站 bms.mtxnyjs.com）
+ * 头部/菜单/背景/按钮：深碳灰背景 + 青色主色 + 白/灰文字
+ */
+:root {
+    --bms-bg: #0a0e17;
+    --bms-bg-card: #1c2128;
+    --bms-bg-input: #21262d;
+    --bms-border: rgba(255, 255, 255, 0.08);
+    --bms-text: #e6edf3;
+    --bms-text-secondary: #8b949e;
+    --bms-text-muted: #6e7681;
+    --bms-primary: #00bcd4;
+    --bms-primary-hover: #00acc1;
+    --bms-success: #4caf50;
+    --bms-warning: #d29922;
+    --bms-danger: #f44336;
+    /* 头部/菜单字号（参考站） */
+    --bms-header-title-size: 24px;
+    --bms-header-nav-size: 13px;
+    --bms-menu-item-size: 18px;
+}
+
+.el-button--primary {
+    --el-button-bg-color: #00bcd4 !important;
+    --el-button-bg-color-hover: #04555f !important;
+    --el-button-bg-color-active: #00bcd4 !important;
+    --el-button-bg-color-disabled: #00bcd4 !important;
+    --el-button-bg-color-focus: #00bcd4 !important;
+    --el-button-text-color: #fff !important;
+    --el-button-hover-text-color: #fff !important;
+    --el-button-hover-link-text-color: #00bcd4 !important;
+    --el-button-hover-bg-color: #00bcd4 !important;
+    --el-button-hover-border-color: #00bcd4 !important;
+    --el-button-active-bg-color: #00bcd4 !important;
+    --el-button-active-border-color: #00bcd4 !important;
+    --el-button-disabled-text-color: #fff !important;
+    --el-button-disabled-bg-color: #00bcd4 !important;
+    --el-button-disabled-border-color: #00bcd4 !important;
+    --el-button-border-color: #00bcd4 !important;
+}
+
+/* 深色模式下应用 BMS 参考站风格：头部、菜单、主色、主背景 */
+html.dark {
+    --el-bg-color: #0a0e17;
+    --el-color-primary: #00bcd4;
+    --el-color-primary-light-3: #4dd0e1;
+    --el-color-primary-dark-2: #0097a7;
+    --pure-border-color: rgba(255, 255, 255, 0.08);
+    --pure-theme-menu-bg: #1a1e24;
+    --pure-theme-menu-text: #e6edf3;
+    --pure-theme-menu-hover: rgba(255, 255, 255, 0.06);
+    --pure-theme-sub-menu-bg: #1a1e24;
+    --pure-theme-sub-menu-active-text: #00bcd4;
+    --pure-theme-sidebar-logo: #1a1e24;
+    --pure-theme-menu-active-before: #00bcd4;
+    --el-menu-active-color: #00bcd4;
+
+    /* 头部、菜单统一用 #1a1e24 */
+    .navbar,
+    .horizontal-header,
+    .lay-menu-bar,
+    .sidebar-container,
+    .sidebar-logo-container,
+    .horizontal-header .el-sub-menu__title,
+    .horizontal-header .submenu-title-noDropdown {
+        background: #1a1e24 !important;
+    }
+
+    .navbar .vertical-header-right {
+        color: var(--bms-text);
+
+        .el-dropdown-link {
+            color: var(--bms-text);
+        }
+    }
+
+    .main-container {
+        background: #0a0e17 !important;
+    }
+
+    .app-main,
+    .app-main-nofixed-header {
+        background: #0a0e17 !important;
+    }
+
+    .sidebar-logo-container .sidebar-title {
+        font-size: var(--bms-header-title-size, 24px);
+    }
+
+    .horizontal-header-right .el-dropdown-link p {
+        font-size: var(--bms-header-nav-size, 13px);
+    }
+}

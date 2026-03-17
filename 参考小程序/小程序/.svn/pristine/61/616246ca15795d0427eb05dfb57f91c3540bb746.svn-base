@@ -1,0 +1,161 @@
+<!--pages/deviceManager/servicePriceList/servicePriceList.wxml-->
+<view class="container">
+  <!-- 顶部输入 -->
+  <view class="top-bar">
+    <view class="input-bg">
+      <input class="device-input" placeholder="请输入设备编码" value="{{deviceCode}}" bindinput="onDeviceCodeInput" bindconfirm="onRefresh" />
+      <text wx:if="{{!!deviceCode}}" class="iconfont icon-guanbi" style="font-size: 48rpx;color: gray;padding: 10rpx ;" catch:tap="clearCode"></text>
+      <text class="iconfont icon-iconfontscan" style="font-size: 48rpx;color: var(--mainThemeText);padding: 10rpx 20rpx;" catch:tap="onScanCode"></text>
+    </view>
+
+    <!-- <text class="cuIcon-filter" style="font-size: 36rpx;color: orangered;padding: 10rpx 30rpx;" catch:tap="showMoreFilter"> </text> -->
+  </view>
+ 
+  <!-- 表格整体容器 -->
+  <view class="table" style="width: 100%;">
+    <view style="width: 100%; display: flex; flex-direction: column;">
+      <!-- 表头固定 -->
+      <view class="table-row table-header">
+         <view class="table-cell" style="flex: 1; ">bms编码</view>
+        <view class="table-cell" style="flex: 0.5; ">年费</view>
+      </view>
+      <!-- 内容滚动 -->
+      <scroll-view class="table-scroll" scroll-y="true" style="height:{{winHeight - 80}}px;" bindscrolltolower="loadMore" bindrefresherrefresh="onSearchConfirm" refresher-enabled="{{true}}" refresher-triggered="{{refresherTriggered}}" refresher-threshold="10" refresher-background="#f5f5f5">
+        <block wx:for="{{deviceList}}" wx:key="index">
+          <view class="table-row">
+            <view class="table-cell" style="flex: 1; ">{{item.bmsId}}</view>
+            <view class="table-cell" style="flex: 0.5; ">{{item.srvFeeD?item.srvFeeD+' 元':'-'}}</view>
+          </view>
+        </block>
+        <!-- 加载更多提示 -->
+        <view wx:if="{{loadingMore}}" class="loading-more">
+          <!-- <image src="/images/loading.gif" class="loading-icon"></image> -->
+          <text>正在加载更多...</text>
+        </view>
+        <view wx:if="{{noMore}}" class="no-more">
+          <text>—— 已经到底了 ——</text>
+        </view>
+
+      </scroll-view>
+    </view>
+  </view>
+</view>
+
+ 
+<!--  过滤筛选 start-->
+<view wx:if="{{showFilter}}" class="box-qlmv" bindtouchstart='touchStart' bindtouchmove='touchMove' bindtouchend="touchEnd">
+  <view class="box_option_container">
+    <!-- 过滤的选项 start -->
+
+    <!-- 在线状态 start -->
+    <view class="box_mvxa">
+      <view class="box_lqaz">
+        <text style="font-weight: bold;  font-size: 28rpx;color: #343434;"><text class="cuIcon-titles" style="color:var(--cyan);"></text> 在线状态</text>
+      </view>
+      <view class="box_yunm">
+        <view class='input-container' catchtap="showDevOnlineList">
+          <input class='code-input' placeholder='选择在线状态' placeholder-class='placeholder' value='{{selectDevOnlineItem.title}}' disabled="{{true}}"></input>
+          <view class='box-iknm'>
+            <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;transform: rotate({{devOnlineShow?'180deg':'0deg'}});"></text>
+
+          </view>
+        </view>
+        <scroll-view wx:if="{{devOnlineShow}}" class="box_pert" show-scrollbar="true" scroll-y="true">
+          <block wx:for="{{onlineOptions}}" wx:key="item">
+            <view style="width: 100%; padding: 10rpx 30rpx;border-bottom: 1rpx solid white;" catchtap="selectDevOnline" data-index="{{index}}" data-item="{{item}}">
+              {{item.title}}
+            </view>
+          </block>
+        </scroll-view>
+
+      </view>
+    </view>
+    <!-- 在线状态 end -->
+
+    <!-- 材料类型 start -->
+    <view class="box_mvxa">
+      <view class="box_lqaz">
+        <text style="font-weight: bold;  font-size: 28rpx;color: #343434;"><text class="cuIcon-titles" style="color:var(--cyan);"></text> 材料类型</text>
+      </view>
+      <view class="box_yunm">
+        <view class='input-container' catchtap="showMeterialList">
+          <input class='code-input' placeholder='选择材料类型' placeholder-class='placeholder' value='{{selectMetarailFilterItem.title}}' disabled="{{true}}"></input>
+          <view class='box-iknm'>
+            <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;transform: rotate({{meterialShow?'180deg':'0deg'}});"></text>
+
+          </view>
+        </view>
+        <scroll-view wx:if="{{meterialShow}}" class="box_pert" show-scrollbar="true" scroll-y="true">
+          <block wx:for="{{materialArray}}" wx:key="item">
+            <view style="width: 100%; padding: 10rpx 30rpx;border-bottom: 1rpx solid white;" catchtap="selectMeterial" data-index="{{index}}" data-item="{{item}}">
+              {{item.title}}
+            </view>
+          </block>
+        </scroll-view>
+
+      </view>
+    </view>
+    <!-- 材料类型 end -->
+
+    <!-- 电芯串数 start -->
+    <view class="box_mvxa">
+      <view class="box_lqaz">
+        <text style="font-weight: bold;  font-size: 28rpx;color: #343434;"><text class="cuIcon-titles" style="color:var(--cyan);"></text> 电芯串数</text>
+      </view>
+      <view class="box_yunm">
+        <view class='input-container'>
+          <input class='code-input' placeholder='输入电芯串数' placeholder-class='placeholder' value='{{selectStockValue}}' type="number" maxlength="2" bindinput="onInpuCellCount"></input>
+          <view class='box-iknm'>
+          </view>
+        </view>
+
+      </view>
+    </view>
+    <!-- 电芯串数 end -->
+
+    <!-- BT码 start -->
+    <view class="box_mvxa">
+      <view class="box_lqaz">
+        <text style="font-weight: bold;  font-size: 28rpx;color: #343434;"><text class="cuIcon-titles" style="color:var(--cyan);"></text> BT码</text>
+      </view>
+      <view class="box_yunm">
+        <view class='input-container'>
+          <input class='code-input' placeholder='请输入BT码' placeholder-class='placeholder' value='{{filterBtCode}}' disabled="{{true}}" bindinput="onInputBtCode"></input>
+          <view class='box-iknm' catch:tap="onScanCodeBT">
+            <text class="cuIcon-scan" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+          </view>
+        </view>
+
+      </view>
+    </view>
+    <!-- BT码 end -->
+
+    <!-- 组织 start -->
+    <view class="box_mvxa">
+      <view class="box_lqaz">
+        <text style="font-weight: bold;  font-size: 28rpx;color: #343434;"><text class="cuIcon-titles" style="color:var(--cyan);"></text> 组织名称</text>
+      </view>
+      <view class="box_yunm">
+        <view class='input-container' catchtap="onSelectGroup">
+          <input class='code-input' placeholder='请选择组织' placeholder-class='placeholder' value='{{selectedOrg.org_name}}' disabled="{{true}}"></input>
+          <view class='box-iknm'>
+            <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+          </view>
+        </view>
+
+      </view>
+    </view>
+    <!-- 组织 end -->
+
+    <!-- 重置和确定按钮 start -->
+    <view class="box_bottom_btns">
+      <view class="box_bottom_btn_item" bindtap="onSelectReset">重置</view>
+      <view class="box_bottom_btn_item box_bottom_btn_item--danger" bindtap="onFilterConfirm">确定</view>
+    </view>
+    <!-- 重置和确定按钮 end -->
+  </view>
+
+</view>
+<!-- 过滤筛选 end -->
+
+ 

@@ -1,0 +1,494 @@
+.container {
+  padding: 20rpx;
+  background: #f8f8f8;
+}
+
+.top-bar {
+  width: 100%;
+}
+
+.input-bg {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 10rpx;
+  padding: 0 10rpx;
+  width: 100%;
+  box-sizing: border-box;
+  height: 80rpx;
+}
+
+.device-input {
+  width: 80%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  padding-left: 30rpx;
+  z-index: 1;
+  transition: width 0.3s;
+  font-size: 28rpx;
+}
+
+.battery-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 30rpx 0;
+}
+
+.battery-outer {
+  position: relative;
+  width: 300rpx;
+  height: 120rpx;
+  border: 4rpx solid #bbb;
+  border-radius: 18rpx;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
+  border-image: linear-gradient(to bottom, #ddd, #fff, #ddd) 1;
+}
+
+.battery-inner {
+  position: relative;
+  width: 284rpx;
+  height: 110rpx;
+  margin-left: 8rpx;
+  background: #e0e0e0;
+  border-radius: 14rpx;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  box-shadow: inset 0 0 10rpx rgba(0,0,0,0.1);
+}
+
+.battery-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(to bottom, #4cd964, #1abc1a);
+  border-radius: 14rpx 0 0 14rpx;
+  z-index: 1;
+  /* transition: width 0.3s; */
+  box-shadow: inset 0 0 10rpx rgba(0,0,0,0.2);
+}
+
+.battery-text {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 28rpx;
+  z-index: 2;
+}
+
+.battery-head {
+  position: absolute;
+  right: -22rpx;
+  top: 12rpx;
+  width: 22rpx;
+  height: 24rpx;
+  background: #bbb;
+  border-radius: 6rpx;
+  border: 2rpx solid #ccc;
+}
+
+.battery-text {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: #000;
+  font-size: 48rpx;
+  z-index: 2;
+  text-shadow: 0 2rpx 4rpx rgba(0,0,0,0.2);
+  font-weight: bold;
+}
+
+.battery-head {
+  position: absolute;
+  right: -20rpx;
+  top: 45rpx;
+  width: 16rpx;
+  height: 30rpx;
+  background: linear-gradient(to bottom, #e0e0e0, #fff);
+  border-radius: 6rpx;
+  border: 2rpx solid #ccc;
+  box-shadow: 2rpx 0 4rpx rgba(0,0,0,0.1);
+}
+
+.section {
+  border-radius: 20rpx;
+  margin-bottom: 30rpx;
+  padding: 16rpx;
+  width: 96%;
+  border: 2px solid white;
+}
+
+.section-title-hex {
+  position: absolute;
+  left: 50%;
+  top: -50rpx;
+  transform: translateX(-50%);
+  width: 340rpx;
+  height: 100rpx;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: #666;
+  font-weight: bold;
+  z-index: 2;
+  clip-path: polygon(12% 0, 88% 0, 100% 50%, 88% 100%, 12% 100%, 0 50%);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.03);
+}
+
+.section-title2 {
+  position: absolute;
+  left: 50%;
+  top: -28rpx;
+  transform: translateX(-50%);
+  width: 340rpx;
+  height: 56rpx;
+  background: #fff;
+  display: flex;
+   align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: #666;
+  font-weight: bold;
+  z-index: 2;
+  clip-path: polygon(12% 0, 88% 0, 100% 50%, 88% 100%, 12% 100%, 0 50%);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.03);
+}
+
+.section {
+  position: relative;
+  border-radius: 20rpx;
+  margin-bottom: 30rpx;
+  padding: 64rpx 16rpx 16rpx 16rpx;
+  width: 96%;
+  border: 2px solid white;
+  background: #ededed;
+  margin-top: 30rpx;
+}
+
+.base-info .row,
+.run-info .row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10rpx;
+  justify-content: space-between;
+}
+
+.base-info .row-3,
+.base-info .row-3 {
+  justify-content: space-between;
+}
+
+.base-info .col,
+.run-info .col {
+  width: 30%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.base-info .col-title {
+  color: #343434;
+  font-size: 24rpx;
+  text-align: center;
+  /* width: 60rpx; */
+  width: 110rpx;
+  padding-right: 10rpx;
+}
+
+.run-info .col-title {
+  color: #343434;
+  font-size: 24rpx;
+  text-align: center;
+  width: 120rpx;
+  padding-right: 10rpx;
+}
+
+.base-info .row-title {
+   text-align: center;
+  width: 120rpx;
+   color: #343434;
+  font-size: 24rpx;
+}
+
+.base-info .col-value,
+.run-info .col-value {
+  width: 100rpx;
+  min-height: 60rpx;
+  background: #fff;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  color: #333;
+  text-align: center;
+  margin-top: 4rpx;
+   display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* .base-info .row text,
+.base-info .row text,
+.run-info .row text {
+	width: 80rpx;
+	color: #343434;
+	font-size: 24rpx;
+} */
+.base-info .row-value,
+.run-info .row-value {
+  flex: 1;
+  min-height: 60rpx;
+  background: #fff;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  color: #333;
+  margin-right: 8rpx;
+  padding-left: 8rpx;
+  display: flex;
+  align-items: center;
+}
+
+.cell-group {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8rpx;
+  justify-items: center;
+  margin-bottom: 20rpx;
+}
+
+.cell-battery {
+  position: relative;
+  width: 80rpx;
+  height: 40rpx;
+  background: #fff;
+  border: 2rpx solid #bbb;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10rpx;
+}
+
+.cell-inner {
+  position: absolute;
+  left: 2rpx;
+  top: 2rpx;
+  height: 36rpx;
+  border-radius: 6rpx;
+  z-index: 1;
+}
+
+.cell-text {
+  position: relative;
+  z-index: 2;
+  color: #333;
+  font-size: 20rpx;
+}
+
+.cell-battery .cell-inner[style*='#ffd6d6'] {
+  color: #d00;
+}
+
+.cell-head {
+  position: absolute;
+  right: -8rpx;
+  top: 12rpx;
+  width: 8rpx;
+  height: 16rpx;
+  background: #bbb;
+  border-radius: 2rpx;
+  border: 1rpx solid #ccc;
+}
+
+
+.protect-group {
+  margin-bottom: 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  width: 100%;
+}
+
+.protect-row-2 {
+  display: flex;
+  flex-direction: row;
+  gap: 32rpx;
+  justify-content: center;
+  width: 96%;
+}
+
+.protect-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  width: 50%;
+  align-items: center;
+}
+
+/* 保护状态样式 - 修改为左对齐布局 */
+.protect-item-left {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-size: 24rpx;
+  margin-bottom: 0;
+  width: 100%;
+}
+
+.protect-item-left .protect-status {
+  border-radius: 4rpx;
+  margin-right: 12rpx;
+  flex-shrink: 0;
+  padding: 0 10rpx;
+  border-radius: 6rpx;
+  color: white;
+}
+
+.protect-item-left text {
+  flex: 1;
+  text-align: left;
+  font-size: 24rpx;
+ }
+
+ .text-status{
+  color: #343434;
+  font-size: 24rpx;
+ }
+
+.protect-item-left .protect-red{
+  background-color: orangered;
+}
+
+.protect-item-left .protect-green{
+  background-color: #1abc1a;
+}
+
+
+.protect-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  width: 50%;
+  align-items: flex-start;
+}
+
+.protect-red {
+  background: #ff3b30;
+}
+
+.protect-gray {
+  background: #e0e0e0;
+}
+
+.cmd-group-2 {
+  display: flex;
+  flex-direction: row;
+  gap: 32rpx;
+  justify-content: center;
+}
+
+.cmd-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  width: 50%;
+  align-items: center;
+}
+
+
+/* 在文件末尾添加 cell-text-red 样式 */
+.cell-text-red {
+  color: #ff3b30 !important;
+  font-weight: bold;
+}
+
+/* 分割线样式 */
+.divider {
+  height: 2rpx;
+  background-color: #ddd;
+  margin: 30rpx 0;
+  width: 100%;
+}
+
+/* 状态文本样式 */
+.status-text {
+  color: white;
+  font-size: 20rpx;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* 绿色状态样式 */
+.protect-green {
+  background: #1abc1a !important;
+}
+
+/* 灰色状态样式 */
+.protect-gray {
+  background: #e0e0e0 !important;
+}
+
+/* 下拉刷新样式 */
+.refresher {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.refresher-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refresher-content image {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 16rpx;
+  animation: rotate 1s linear infinite;
+}
+
+.refresher-content text {
+  font-size: 28rpx;
+  color: #666;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.box-cell-container{
+  display: flex;
+  align-items: center;
+}
+
+.cell-index{
+  color: #343434;
+  font-size: 24rpx;
+  margin-right: 10rpx;
+}

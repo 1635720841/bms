@@ -1,0 +1,70 @@
+<view class="mine-container">
+  <view class="mine-top">
+    <text class="iconfont icon-touxiang" style="font-size: 150rpx;border-radius: 50%;color: #bdbdbd;margin-bottom: 10rpx;"></text>
+    <view class="user-info">
+      <text class="username">{{username || '未登录'}}</text>
+      <text class="username">{{org_name || ''}}</text>
+       <!-- 金属质感按钮 -->
+      <view wx:if="{{!isLogin}}" class="metallic-button chrome {{activeSize}} {{isPressed ? 'pressed' : ''}}" bindtouchstart="buttonTouchStart" bindtouchend="buttonTouchEnd" bindtouchcancel="buttonTouchCancel" catchtap="onLogin">
+        <view class="button-content">
+          <view class="button-text">登录</view>
+        </view>
+        <view class="shine"></view>
+        <view class="press-effect chrome {{isPressed ? 'active' : ''}}"></view>
+        <view class="inner-shadow {{isPressed ? 'active' : ''}}"></view>
+      </view>
+
+
+    </view>
+  </view>
+
+  <view class="menu-list">
+    <view class="menu-item" catchtap="onViewConfigLogs">
+      <text class="iconfont icon-peizhijilu" style="font-size: 48rpx; color: #bdbdbd;margin-right: 10rpx;"></text>
+      <text class="menu-text">配置记录</text>
+      <text class="iconfont icon-youjiantou" style="font-size: 48rpx; color: #bdbdbd;margin-right: 10rpx;"></text>
+
+    </view>
+
+    <view class="menu-item" catchtap="onContactService">
+      <text class="iconfont icon-kefu" style="font-size: 48rpx; color: #bdbdbd;margin-right: 10rpx;"></text>
+      <text class="menu-text">联系客服</text>
+    </view>
+    <view wx:if="{{orgListPerm}}" class="menu-item" catchtap="onGroupMng">
+      <text class="cuIcon-group" style="font-size: 48rpx; color: #bdbdbd;margin-right: 10rpx;"></text>
+      <text class="menu-text">组织管理</text>
+      <text class="iconfont icon-youjiantou" style="font-size: 48rpx; color: #bdbdbd;margin-right: 10rpx;"></text>
+    </view>
+
+    <view wx:if="{{userListPerm}}" class="menu-item" catchtap="onUserMng">
+      <text class="cuIcon-people" style="font-size: 48rpx; color: #bdbdbd;margin-right: 10rpx;"></text>
+      <text class="menu-text">用户管理</text>
+      <text class="iconfont icon-youjiantou" style="font-size: 48rpx; color: #bdbdbd;margin-right: 10rpx;"></text>
+    </view>
+     <view wx:if="{{devListPerm}}" class="menu-item" catchtap="onDeviceMng">
+      <text class="cuIcon-list" style="font-size: 48rpx; color: #bdbdbd;margin-right: 10rpx;"></text>
+      <text class="menu-text">设备管理</text>
+      <text class="iconfont icon-youjiantou" style="font-size: 48rpx; color: #bdbdbd;margin-right: 10rpx;"></text>
+
+    </view>
+
+    <view class="menu-item" catchtap="onModifyPwd">
+      <text class="cuIcon-lock" style="font-size: 48rpx; color: #bdbdbd;margin-right: 10rpx;"></text>
+      <text class="menu-text">密码修改</text>
+      <text class="iconfont icon-youjiantou" style="font-size: 48rpx; color: #bdbdbd;margin-right: 10rpx;"></text>
+
+    </view>
+
+    <view class="menu-item">
+      <text class="iconfont icon-banben" style="font-size: 48rpx; color: #bdbdbd;margin-right: 10rpx;"></text>
+      <text class="menu-text">版本号</text>
+      <text class="menu-version">{{version}}</text>
+    </view>
+    <view class="menu-item" catchtap="onLogout">
+      <text class="iconfont icon-shinshoptuichudenglu" style="font-size: 48rpx; color: #bdbdbd;margin-right: 10rpx;"></text>
+      <text class="menu-text">退出账号</text>
+    </view>
+  </view>
+
+
+</view>

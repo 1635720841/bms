@@ -1,0 +1,410 @@
+<view class="container">
+  <!-- 下拉刷新加载指示器 -->
+  <view class="refresher" wx:if="{{refreshing}}">
+    <view class="refresher-content">
+      <loading type="circle" color="#666"></loading>
+      <text>加载中...</text>
+    </view>
+  </view>
+  <!-- 顶部输入 -->
+  <view class="top-bar">
+    <view class="input-bg">
+      <input class="device-input" placeholder="请输入设备编码" value="{{deviceCode}}" bindinput="onDeviceCodeInput" bindconfirm="onDeviceCodeConfirm" />
+      <text wx:if="{{!!deviceCode}}" class="iconfont icon-guanbi" style="font-size: 48rpx;color: gray;padding: 10rpx ;" catch:tap="clearCode"></text>
+      <text class="iconfont icon-iconfontscan" style="font-size: 48rpx;color: var(--mainThemeText);padding: 10rpx 20rpx;" catch:tap="onScanCode"></text>
+    </view>
+  </view>
+  <!-- 电池电量 -->
+  <view   class="battery-bar">
+    <view class="battery-outer">
+      <view class="battery-inner">
+        <view class="battery-fill" style="width:{{runInfo ? runInfo.soc : batteryPercent}}%"></view>
+        <text class="battery-text">{{runInfo ? runInfo.soc : batteryPercent}}%</text>
+      </view>
+      <view class="battery-head"></view>
+    </view>
+  </view>
+
+  <!-- 基础信息 -->
+  <view   class="section section-has-title">
+    <view wx:if="{{baseInfo.timeF}}" class="section-title-hex">
+      <text>基础信息</text>
+      <text style="font-size: 24rpx;">{{baseInfo.timeF}}</text>
+    </view>
+    <view wx:else class="section-title2">基础信息</view>
+    <view class="base-info">
+      <view class="row row-3">
+        <view class="col">
+          <text class="col-title">容量</text>
+          <text class="col-value">{{baseInfo.capactiyD? baseInfo.capactiyD + 'Ah' : '--'}}</text>
+        </view>
+        <view class="col">
+          <text class="col-title">材料</text>
+          <text class="col-value">{{baseInfo.cellMat == 1?'铁锂':(baseInfo.cellMat == 2?'三元':'')}} </text>
+        </view>
+        <view class="col">
+          <text class="col-title">串数</text>
+          <text class="col-value">{{baseInfo.cellCnt}}</text>
+        </view>
+      </view>
+      <view class="row"><text class="row-title">BMS</text><text class="row-value" catch:longpress="onCopyData" data-content="{{baseInfo.bms_id}}">{{baseInfo.bms_id}}</text><text style="font-size: 24rpx ;margin-left: 10rpx;color: var(--mainThemeText);" catch:tap="onCopyData" data-content="{{baseInfo.bms_id}}">复制</text></view>
+      <view class="row"><text class="row-title">版本</text><text class="row-value" catch:longpress="onCopyData" data-content="{{baseInfo.version}}">{{baseInfo.version}}</text><text style="font-size: 24rpx ;margin-left: 10rpx;color: var(--mainThemeText);" catch:tap="onCopyData" data-content="{{baseInfo.version}}">复制</text></view>
+      <view class="row"><text class="row-title">imsi</text><text class="row-value" catch:longpress="onCopyData" data-content="{{baseInfo.imsi}}">{{baseInfo.imsi}}</text><text style="font-size: 24rpx ;margin-left: 10rpx;color: var(--mainThemeText);" catch:tap="onCopyData" data-content="{{baseInfo.imsi}}">复制</text></view>
+      <view class="row"><text class="row-title">BT码</text><text class="row-value" catch:longpress="onCopyData" data-content="{{baseInfo.bt_code}}">{{baseInfo.btCode}}</text><text style="font-size: 24rpx ;margin-left: 10rpx;color: var(--mainThemeText);" catch:tap="onCopyData" data-content="{{baseInfo.btCode}}">复制</text></view>
+      <view class="row"><text class="row-title">管理后台</text><text class="row-value" catch:longpress="onCopyData" data-content="{{baseInfo.x_server}}">{{baseInfo.xServer}}</text><text style="font-size: 24rpx ;margin-left: 10rpx;color: var(--mainThemeText);" catch:tap="onCopyData" data-content="{{baseInfo.xServer}}">复制</text></view>
+      <view class="row"><text class="row-title">三方后台</text><text class="row-value" catch:longpress="onCopyData" data-content="{{baseInfo.t_server}}">{{baseInfo.tServer}}</text><text style="font-size: 24rpx ;margin-left: 10rpx;color: var(--mainThemeText);" catch:tap="onCopyData" data-content="{{baseInfo.tServer}}">复制</text></view>
+    </view>
+  </view>
+
+
+  <!-- 保护状态 -->
+  <view class="section section-has-title" >
+    <view wx:if="{{runInfo.timeF}}" class="section-title-hex">
+      <text>运行信息</text>
+      <text style="font-size: 24rpx;">{{runInfo.timeF}}</text>
+    </view>
+    <view wx:else class="section-title2">运行信息</view>
+    <!-- 内部 运行信息 -->
+    <view class="run-info">
+      <view class="row row-3">
+        <view class="col">
+          <text class="col-title">soc</text>
+          <text class="col-value">{{runInfo ? runInfo.soc + '%' : '--'}}</text>
+        </view>
+        <view class="col">
+          <text class="col-title">总压</text>
+          <text class="col-value">{{runInfo ? runInfo.batVoltD + 'V' : '--'}}</text>
+        </view>
+        <view class="col">
+          <text class="col-title">电流</text>
+          <text class="col-value">{{runInfo ? runInfo.currentD + 'A': '--'}}</text>
+        </view>
+      </view>
+      <view class="row row-3">
+        <view class="col">
+          <text class="col-title">soh</text>
+          <text class="col-value">{{runInfo ? runInfo.soh + '%' : '--'}}</text>
+        </view>
+        <view class="col">
+          <text class="col-title">循环</text>
+          <text class="col-value">{{runInfo ? runInfo.loop : '--'}}</text>
+        </view>
+        <view class="col">
+          <text class="col-title">在线</text>
+          <text class="col-value">{{runInfo.online == 1 ? '是' : '否'}}</text>
+        </view>
+      </view>
+      <view class="row row-3">
+        <view class="col">
+          <text class="col-title">mos温度</text>
+          <text class="col-value">{{runInfo ? runInfo.mos_T + '°C' : '--'}}</text>
+        </view>
+        <view class="col">
+          <text class="col-title">环境温度</text>
+          <text class="col-value">{{runInfo ? runInfo.env_T + '°C' : '--'}}</text>
+        </view>
+        <view class="col">
+          <text class="col-title">电芯温度1 </text>
+          <text class="col-value"> {{runInfo && runInfo.cell_T && runInfo.cell_T.length > 0 ? runInfo.cell_T[0] + '°C' : '--'}}</text>
+        </view>
+      </view>
+
+      <view class="row row-3">
+        <view class="col">
+          <text class="col-title">电芯温度2 </text>
+          <text class="col-value"> {{runInfo && runInfo.cell_T && runInfo.cell_T.length > 1 ? runInfo.cell_T[1] + '°C' : '--'}}</text>
+        </view>
+        <view class="col">
+          <text class="col-title">电芯温度3 </text>
+          <text class="col-value"> {{runInfo && runInfo.cell_T && runInfo.cell_T.length > 2 ? runInfo.cell_T[2] + '°C' : '--'}}</text>
+        </view>
+        <view class="col">
+          <text class="col-title">电芯温度4 </text>
+          <text class="col-value"> {{runInfo && runInfo.cell_T && runInfo.cell_T.length > 3 ? runInfo.cell_T[3] + '°C' : '--'}}</text>
+        </view>
+      </view>
+      <view class="row row-3">
+        <view class="col">
+          <text class="col-title">定位星数</text>
+          <text class="col-value">{{runInfo.gps_sat_cnt?runInfo.gps_sat_cnt:'-'}}</text>
+        </view>
+        <view class="col" style="width: 62%;justify-content: flex-start;">
+          <text class="col-title">经纬度</text>
+          <text wx:if="{{runInfo.lng && runInfo.lat}}" class="col-value" style="width:100%;" catch:tap="onShowMap">{{runInfo.lng}},{{runInfo.lat}} <text class="cuIcon-locationfill" style="font-size: 36rpx;color: var(--mainThemeText) ;"></text></text>
+          <text wx:else class="col-value" style="width: 100%;">-</text>
+
+        </view>
+      </view>
+
+
+    </view>
+    <!-- 分割线 -->
+    <view class="divider"></view>
+
+    <!-- 内部 电芯分布 -->
+    <view wx:if="{{runInfo.cell_volts}}" class="cell-group">
+      <block wx:for="{{runInfo.cell_volts}}" wx:key="index">
+        <view class="box-cell-container">
+          <text class="cell-index">{{index+1}}</text>
+          <view class="cell-battery">
+            <view class="cell-inner" style="background:#d6f5d6;width:{{(item / 4500) * 100}}%"></view>
+            <text class="cell-text  {{index === runInfo.minCellIndex || index === runInfo.maxCellIndex ? 'cell-text-red' : ''}}">{{item}}</text>
+            <view class="cell-head"></view>
+          </view>
+        </view>
+
+      </block>
+
+    </view>
+    <!-- 分割线 -->
+    <view class="divider"></view>
+
+    <!-- 内部 保护状态 -->
+    <view class="protect-group">
+      <view class="protect-row-2">
+        <view class="protect-col">
+          <!-- 第一列保护状态 -->
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.protect & 1) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.protect & 1) ? '是' : '否'}}</text>
+            </view>
+            <text>电芯过压保护</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.protect & 2) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.protect & 2) ? '是' : '否'}}</text>
+            </view>
+            <text>电芯欠压保护</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.protect & 4) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.protect & 4) ? '是' : '否'}}</text>
+            </view>
+            <text>I放电过流保护</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.protect & 8) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.protect & 8) ? '是' : '否'}}</text>
+            </view>
+            <text>I充电过流保护</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.protect & 16) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.protect & 16) ? '是' : '否'}}</text>
+            </view>
+            <text>II放电过流保护</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.protect & 32) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.protect & 32) ? '是' : '否'}}</text>
+            </view>
+            <text>II充电过流保护</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.protect & 64) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.protect & 64) ? '是' : '否'}}</text>
+            </view>
+            <text>短路保护</text>
+          </view>
+        </view>
+
+        <view class="protect-col">
+          <!-- 第二列保护状态 -->
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.protect & 128) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.protect & 128) ? '是' : '否'}}</text>
+            </view>
+            <text>总压高保护</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.protect & 256) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.protect & 256) ? '是' : '否'}}</text>
+            </view>
+            <text>总压低保护</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.protect & 512) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.protect & 512) ? '是' : '否'}}</text>
+            </view>
+            <text>放电高温保护</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.protect & 1024) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.protect & 1024) ? '是' : '否'}}</text>
+            </view>
+            <text>放电低温保护</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.protect & 2048) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.protect & 2048) ? '是' : '否'}}</text>
+            </view>
+            <text>充电高温保护</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.protect & 4096) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.protect & 4096) ? '是' : '否'}}</text>
+            </view>
+            <text>充电低温保护</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.protect & 8192) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.protect & 8192) ? '是' : '否'}}</text>
+            </view>
+            <text>MOS高温保护</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 分割线 -->
+    <view class="divider"></view>
+
+    <!-- status字段解析 -->
+    <view class="protect-group">
+      <view class="protect-row-2">
+        <view class="protect-col">
+          <!-- 第一列status状态 -->
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.status & 1) ? 'protect-green' : 'protect-red'}}">
+              <text class="status-text">{{(runInfo.status & 1) ? '接通' : '断开'}}</text>
+            </view>
+            <text>放电MOS状态</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.status & 2) ? 'protect-green' : 'protect-red'}}">
+              <text class="status-text">{{(runInfo.status & 2) ? '接通' : '断开'}}</text>
+            </view>
+            <text>充电MOS状态</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.status & 4) ? 'protect-green' : 'protect-red'}}">
+              <text class="status-text">{{(runInfo.status & 4) ? '接入' : '未接入'}}</text>
+            </view>
+            <text>负载接入状态</text>
+          </view>
+
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.status & 8) ? 'protect-green' : 'protect-red'}}">
+              <text class="status-text">{{(runInfo.status & 8) ? '接入' : '未接入'}}</text>
+            </view>
+            <text>充电器接入状态</text>
+          </view>
+
+
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.status & 256) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.status & 256) ? '失效' : '正常'}}</text>
+            </view>
+            <text>充电M0S失效</text>
+          </view>
+        </view>
+
+        <view class="protect-col">
+          <!-- 第二列status状态 -->
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.status & 16) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.status & 16) ? '异常' : '正常'}}</text>
+            </view>
+            <text>AFE通信状态</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.status & 32) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.status & 32) ? '异常' : '正常'}}</text>
+            </view>
+            <text>温感线状态</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.status & 64) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.status & 64) ? '异常' : '正常'}}</text>
+            </view>
+            <text>电芯采集线状态</text>
+          </view>
+
+          <!-- b7:串数配错 0-正常 1-错误  b8:充电M0S失效 0-正常 1-失效  b9:放电Mos失效 0-正常 1-失效 -->
+
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.status & 128) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.status & 128) ? '错误' : '正常'}}</text>
+            </view>
+            <text>串数配错</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.status & 512) ? 'protect-red' : 'protect-green'}}">
+              <text class="status-text">{{(runInfo.status & 512) ? '失效' : '正常'}}</text>
+            </view>
+            <text>放电M0S失效</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <!-- 分割线 -->
+    <view class="divider"></view>
+
+    <!-- switch_fun_ctrl字段解析 -->
+    <view class="protect-group">
+      <view class="protect-row-2">
+        <view class="protect-col">
+          <!-- switch_fun_ctrl状态 -->
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.switch_fun_ctrl & 1) ? 'protect-green' : 'protect-red'}}">
+              <text class="status-text">{{(runInfo.switch_fun_ctrl & 1) ? '开' : '关'}}</text>
+            </view>
+            <text>放电开关</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.switch_fun_ctrl & 2) ? 'protect-green' : 'protect-red'}}">
+              <text class="status-text">{{(runInfo.switch_fun_ctrl & 2) ? '开' : '关'}}</text>
+            </view>
+            <text>充电开关</text>
+          </view>
+        </view>
+
+        <view class="protect-col">
+          <!-- switch_fun_ctrl状态 -->
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.switch_fun_ctrl & 4) ? 'protect-green' : 'protect-red'}}">
+              <text class="status-text">{{(runInfo.switch_fun_ctrl & 4) ? '允许' : '禁止'}}</text>
+            </view>
+            <text>盲充功能</text>
+          </view>
+          <view class="protect-item protect-item-left">
+            <view class="protect-status {{(runInfo.switch_fun_ctrl & 8) ? 'protect-green' : 'protect-red'}}">
+              <text class="status-text">{{(runInfo.switch_fun_ctrl & 8) ? '允许' : '禁止'}}</text>
+            </view>
+            <text>防打火功能</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+  </view>
+
+  <!-- 指令操作 -->
+  <view  class="section section-has-title">
+    <view class="section-title2">指令操作</view>
+    <view class="cmd-group-2">
+      <view class="cmd-col">
+        <button class="btn-metal btn-metal--hybrid" style="width: 250rpx;" catchtap="funCtrl" data-func="discharge" data-op="1" data-confirm="true" hover-class="btn-active">打开放电</button>
+        <button class="btn-metal btn-metal--hybrid" style="width: 250rpx;" catchtap="funCtrl" data-func="charge" data-op="1" data-confirm="true" hover-class="btn-active">打开充电</button>
+        <button class="btn-metal btn-metal--hybrid" style="width: 250rpx;" catchtap="funCtrl" data-func="blindChg" data-op="1" data-confirm="true" hover-class="btn-active">允许盲充</button>
+        <button class="btn-metal btn-metal--hybrid" style="width: 250rpx;" catchtap="funCtrl" data-func="beep" data-op="1" data-confirm="true" hover-class="btn-active">开蜂鸣器</button>
+        <button class="btn-metal btn-metal--hybrid" style="width: 250rpx;" catchtap="funCtrl" data-func="preventSpark" data-op="1" data-confirm="true" hover-class="btn-active">开防打火</button>
+        <button class="btn-metal btn-metal--hybrid" style="width: 250rpx;" catchtap="funCtrl" data-func="scRecov" data-op="1" data-confirm="true" hover-class="btn-active">短路恢复</button>
+        <button class="btn-metal btn-metal--hybrid" style="width: 250rpx;" catchtap="funCtrl" data-func="reset" data-op="1" data-confirm="true" hover-class="btn-active">重启BMS</button>
+        
+      </view>
+      <view class="cmd-col">
+        <button class="btn-metal btn-metal--hybrid" style="width: 250rpx;" catchtap="funCtrl" data-func="discharge" data-op="0" data-confirm="true" hover-class="btn-active">关闭放电</button>
+        <button class="btn-metal btn-metal--hybrid" style="width: 250rpx;" catchtap="funCtrl" data-func="charge" data-op="0" data-confirm="true" hover-class="btn-active">关闭充电</button>
+        <button class="btn-metal btn-metal--hybrid" style="width: 250rpx;" catchtap="funCtrl" data-func="blindChg" data-op="0" data-confirm="true" hover-class="btn-active">禁止盲充</button>
+        <button class="btn-metal btn-metal--hybrid" style="width: 250rpx;" catchtap="funCtrl" data-func="beep" data-op="0" data-confirm="true" hover-class="btn-active">关蜂鸣器</button>
+        <button class="btn-metal btn-metal--hybrid" style="width: 250rpx;" catchtap="funCtrl" data-func="preventSpark" data-op="0" data-confirm="true" hover-class="btn-active">关防打火</button>
+        <button class="btn-metal btn-metal--hybrid" style="width: 250rpx;" catchtap="funCtrl" data-func="mosFailRecov" data-op="1" data-confirm="true" hover-class="btn-active">mos故障恢复</button>
+
+        <button class="btn-metal btn-metal--hybrid" style="width: 250rpx;" catchtap="setParams" data-confirm="true" hover-class="btn-active">参数配置</button>
+      </view>
+    </view>
+  </view>
+
+
+</view>

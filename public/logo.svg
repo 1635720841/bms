@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="batteryGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#58a6ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1f6feb;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="energyGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#3fb950;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#58a6ff;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 电池外壳 -->
+  <rect x="28" y="36" width="72" height="48" rx="6" ry="6" 
+        fill="url(#batteryGradient)" stroke="#58a6ff" stroke-width="3"/>
+  
+  <!-- 电池正极 -->
+  <rect x="100" y="52" width="8" height="16" rx="2" ry="2" 
+        fill="url(#batteryGradient)"/>
+  
+  <!-- 电量指示 - 三段式 -->
+  <rect x="36" y="44" width="16" height="32" rx="2" ry="2" 
+        fill="url(#energyGradient)" opacity="0.9"/>
+  <rect x="56" y="44" width="16" height="32" rx="2" ry="2" 
+        fill="url(#energyGradient)" opacity="0.8"/>
+  <rect x="76" y="44" width="16" height="32" rx="2" ry="2" 
+        fill="url(#energyGradient)" opacity="0.7"/>
+  
+  <!-- 闪电图标 -->
+  <path d="M 64 48 L 58 60 L 64 60 L 60 72 L 70 58 L 64 58 Z" 
+        fill="#e6edf3" opacity="0.95"/>
+  
+  <!-- BMS 文字 -->
+  <text x="64" y="104" font-family="Arial, sans-serif" font-size="16" 
+        font-weight="bold" fill="#58a6ff" text-anchor="middle">BMS</text>
+</svg>

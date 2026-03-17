@@ -1,0 +1,69 @@
+{
+  "pages": [
+    "pages/deviceInfo/deviceInfo",
+    "pages/deviceList/deviceList",
+    "pages/paramConfig/paramConfig",
+    "pages/mine/mine",
+    "pages/login/login",
+    "pages/deviceManager/index/index",
+    "pages/deviceManager/deviceEntry/deviceEntry",
+    "pages/deviceManager/deviceAllocation/deviceAllocation",
+    "pages/deviceManager/configuration/configuration",
+    "pages/deviceManager/servicePricing/servicePricing",
+    "pages/deviceManager/serviceTime/serviceTime",
+    "pages/groupManager/orgTree/index",
+    "pages/groupManager/addOrg/addOrg",
+    "pages/groupManager/editOrg/editOrg",
+    "pages/groupManager/accountCfg/accountCfg",
+    "pages/userManager/userList/userList",
+    "pages/userManager/userDetail/userDetail",
+    "pages/userManager/addUser/addUser",
+    "pages/userManager/editUser/editUser",
+    "pages/userManager/resetPwd/resetPwd",
+    "pages/userManager/modifyPwd/modifyPwd",
+    "pages/userManager/index/index",
+    "pages/deviceManager/serviceAddress/serviceAddress",
+    "pages/locOnMap/locOnMap",
+    "pages/deviceManager/priceList/priceList",
+    "pages/deviceManager/timeList/timeList"
+
+  ],
+  "tabBar": {
+    "selectedColor": "#2ecc71",
+    "list": [
+      {
+        "iconPath": "/images/tabbar/icon_devInfo.png",
+        "selectedIconPath": "/images/tabbar/icon_devInfo_active.png",
+        "pagePath": "pages/deviceInfo/deviceInfo",
+        "text": "设备信息"
+      },
+      {
+        "iconPath": "/images/tabbar/icon_device_list.png",
+        "selectedIconPath": "/images/tabbar/icon_device_list_active.png",
+        "pagePath": "pages/deviceList/deviceList",
+        "text": "设备列表"
+      },
+      {
+        "iconPath": "/images/tabbar/icon_param_config.png",
+        "selectedIconPath": "/images/tabbar/icon_param_config_active.png",
+        "pagePath": "pages/paramConfig/paramConfig",
+        "text": "参数配置"
+      },
+      {
+        "iconPath": "/images/tabbar/icon_mine.png",
+        "selectedIconPath": "/images/tabbar/icon_mine_active.png",
+        "pagePath": "pages/mine/mine",
+        "text": "我的"
+      }
+    ]
+  },
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "Weixin",
+    "navigationBarBackgroundColor": "#ffffff"
+  },
+  "style": "v2",
+  "componentFramework": "glass-easel",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

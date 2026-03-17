@@ -1,0 +1,63 @@
+<!--pages/deviceManager/configuration/configuration.wxml-->
+<view class="container">
+
+  <view style="width: 96%;display: flex;flex-direction: column;padding: 30rpx;">
+    <view style="display: flex;align-items: center;justify-content: space-between;">
+      <text class="text-9oag"> <text class="cuIcon-titles" style="color:var(--cyan);"></text>设备编码 (逗号、换行分割)</text>
+      <text wx:if="{{!!validDevList}}">{{validDevList.length}}</text>
+      <text class="iconfont icon-iconfontscan" style="font-size:48rpx;color: var(--mainThemeText);padding: 20rpx 30rpx;" catch:tap="onScanCode"></text>
+    </view>
+
+
+    <view class="box_kddf">
+      <textarea class="text-jfaf" value="{{devString}}" maxlength="-1"  bindinput="onInputDev" />
+      <text wx:if="{{devString}}" class="cuIcon-close" style="padding: 10rpx 30rpx; font-size: 32rpx;" catch:tap="clearInputDevs"></text>
+      <text class="text-ad32" catch:tap="onPreview">识别</text>
+    </view>
+  </view>
+
+  <view wx:if="{{isPreview}}" style="width: 96%;display: flex;flex-direction: column;padding: 30rpx;">
+    <view style="display: flex;align-items: center;justify-content: space-between;">
+      <text class="text-9oag"> <text class="cuIcon-titles" style="color:var(--cyan);"></text>清单预览</text>
+      <text wx:if="{{!!validDevList}}">{{validDevList.length}}</text>
+    </view>
+
+
+    <view class="box_kddf" style="padding: 10rpx;">
+      <scroll-view style="width: 100%;height: 100%;" scroll-y="{{true}}">
+        <block wx:for="{{validDevList}}" wx:key="item">
+          <view class="box_kska">
+            <text>{{item}}</text>
+          </view>
+        </block>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 参数查找下拉选择板块 -->
+  <view style="width: 96%;padding: 30rpx;display: flex;flex-direction: column;">
+    <text class="text-9oag"> <text class="cuIcon-titles" style="color:var(--cyan);"></text>主服务器配置</text>
+    <picker mode="selector" style="width: 100%;" range="{{xsrList}}" range-key="title" bindchange="onSectionChange">
+      <view class="param-search-picker" style="width: 100%;">{{selectedSection.title?selectedSection.title:'请选择服务器'}}
+        <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+      </view>
+    </picker>
+  </view>
+
+  <radio-group class="modal-radio-group" bindchange="onOfflineTaskChange">
+    <label class="radio-item">
+      <radio value="0" checked="{{offlineTask === 0}}" style="transform: scale(0.8);" /> 仅配置在线设备
+    </label>
+    <label class="radio-item">
+      <radio value="1" checked="{{offlineTask === 1}}" style="transform: scale(0.8);" /> 配置所有设备（包括离线设备，系统配置离线任务，待设备上线后执行）
+    </label>
+  </radio-group>
+
+
+
+  <view class="dialog-buttons" style="margin:30rpx; width: 90%;">
+    <button class="dialog-btn confirm default" catchtap="onConfirmCfg">提交</button>
+  </view>
+
+
+</view>

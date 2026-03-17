@@ -1,0 +1,54 @@
+<!--pages/userManager/addUser/addUser.wxml-->
+<!--pages/groupManager/addOrg/addOrg.wxml-->
+<view class="container">
+  <view class="box_sjfk">
+    <text class="text-plza"><text class="text-red">*</text> 所属组织</text>
+    <view wx:if="{{selectedOrg}}" class="input-pqqq" style="justify-content: space-between;">
+      <text >{{selectedOrg.org_name}} </text>
+      <text wx:if="{{selectedOrg.org_name}}" class="cuIcon-close" style="padding: 0 10rpx;font-size: 32rpx;" catch:tap="clearOrg"></text>
+    </view>
+
+    <text wx:else class="input-pqqq" style="color: gray;" catch:tap="onSelectGroup">请选择调拨的组织单位</text>
+  </view>
+
+
+  <view class="box_sjfk">
+    <text class="text-plza"><text class="text-red">*</text> 登录账号</text>
+    <input class="input-pqqq" type="text" maxlength="30" bindinput="onInput" data-index="6" value="{{name}}"></input>
+  </view>
+
+  <view class="box_sjfk">
+    <text class="text-plza"><text class="text-red">*</text> 登录密码</text>
+    <input class="input-pqqq" type="text" maxlength="11" bindinput="onInput" data-index="7" password="true" value="{{password}}"></input>
+  </view>
+
+  <view class="box_sjfk">
+    <text class="text-plza"><text class="text-red">*</text> 登录密码</text>
+    <input class="input-pqqq" type="text" maxlength="11" bindinput="onInput" data-index="8" password="true" value="{{repwd}}"></input>
+  </view>
+
+
+  <view class="box_sjfk">
+    <text class="text-plza">电子邮箱</text>
+    <input class="input-pqqq" type="text" maxlength="36" bindinput="onInput" data-index="21" value="{{email}}"></input>
+  </view>
+  <view class="box_sjfk">
+    <text class="text-plza">手机号码</text>
+    <input class="input-pqqq" type="number" maxlength="11" bindinput="onInput" data-index="22" value="{{mobile}}"></input>
+  </view>
+  <view class="box_sjfk">
+    <text class="text-plza">备注信息</text>
+    <input class="input-pqqq" type="text" maxlength="100" bindinput="onInput" data-index="23" value="{{comment}}"></input>
+  </view>
+
+
+  <view class="dialog-buttons" style="margin:100rpx 0 50rpx 0; width: 96%;">
+    <view style="width: 5%;"></view>
+    <button class="dialog-btn cancel" catch:tap="onCancel">取消</button>
+    <button class="dialog-btn confirm" catch:tap="onSubmit">确定</button>
+    <view style="width: 5%;"></view>
+  </view>
+
+
+
+</view>

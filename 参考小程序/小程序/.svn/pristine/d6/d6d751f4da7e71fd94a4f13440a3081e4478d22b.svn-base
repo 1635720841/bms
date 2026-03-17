@@ -1,0 +1,72 @@
+<!--pages/deviceManager/configuration/configuration.wxml-->
+<view class="container">
+
+  <view style="width: 96%;display: flex;flex-direction: column;padding: 30rpx;">
+    <view style="display: flex;align-items: center;justify-content: space-between;">
+      <text class="text-9oag"> <text class="cuIcon-titles" style="color:var(--cyan);"></text>设备编码 (逗号、换行分割)</text>
+      <text wx:if="{{!!validDevList}}">{{validDevList.length}}</text>
+      <text class="iconfont icon-iconfontscan" style="font-size:48rpx;color: var(--mainThemeText);padding: 20rpx 30rpx;" catch:tap="onScanCode"></text>
+    </view>
+
+
+    <view class="box_kddf">
+      <textarea class="text-jfaf" value="{{devString}}" maxlength="-1"  bindinput="onInputDev" />
+      <text wx:if="{{devString}}" class="cuIcon-close" style="padding: 10rpx 30rpx; font-size: 32rpx;" catch:tap="clearInputDevs"></text>
+      <text class="text-ad32" catch:tap="onPreview">识别</text>
+    </view>
+  </view>
+
+  <view wx:if="{{isPreview}}" style="width: 96%;display: flex;flex-direction: column;padding: 30rpx;">
+    <view style="display: flex;align-items: center;justify-content: space-between;">
+      <text class="text-9oag"> <text class="cuIcon-titles" style="color:var(--cyan);"></text>清单预览</text>
+      <text wx:if="{{!!validDevList}}">{{validDevList.length}}</text>
+    </view>
+
+
+    <view class="box_kddf" style="padding: 10rpx;">
+      <scroll-view style="width: 100%;height: 100%;" scroll-y="{{true}}">
+        <block wx:for="{{validDevList}}" wx:key="item">
+          <view class="box_kska">
+            <text>{{item}}</text>
+          </view>
+        </block>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 参数查找下拉选择板块 -->
+  <view style="width: 96%;padding: 30rpx;display: flex;flex-direction: column;">
+    <text class="text-9oag"> <text class="cuIcon-titles" style="color:var(--cyan);"></text>生产配置</text>
+    <picker mode="selector" style="width: 100%;" range="{{cfgList}}" range-key="name" bindchange="onSectionChange">
+      <view class="param-search-picker" style="width: 100%;">{{selectedSection.name?selectedSection.name:'请选择配置参数'}}
+        <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+      </view>
+    </picker>
+  </view>
+  
+
+  <view class="dialog-buttons" style="margin:30rpx; width: 90%;">
+    <button class="dialog-btn confirm default" catchtap="onConfirmCfg">提交</button>
+  </view>
+
+  <!-- 参数展示 -->
+  <view  wx:if="{{profile && profile.title}}"  style="width: 96%;padding: 30rpx;display: flex;flex-direction: column;">
+    <text class="text-9oag"> <text class="cuIcon-titles" style="color:var(--cyan);"></text>参数展示</text>
+
+    <!-- 内容滚动 -->
+    <view class="table" style="width: 100%;">
+        <!-- 内容滚动 -->
+      <scroll-view class="table-scroll" scroll-y="true" style="min-height: 150rpx;"  >
+        <block wx:for="{{profile.title}}" wx:key="index">
+          <view class="table-row">
+             <view class="table-cell" style="flex: 0.2;align-items: flex-start;">  {{item}}</view>
+             <view class="table-cell" style="flex: 0.8; border-left: 1rpx solid #ccc;">{{profile.value[index]}}</view>
+           </view>
+        </block>
+       </scroll-view>
+   </view>
+
+  </view>
+
+ 
+</view>

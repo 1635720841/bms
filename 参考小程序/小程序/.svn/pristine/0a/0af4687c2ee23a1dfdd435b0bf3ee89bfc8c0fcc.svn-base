@@ -1,0 +1,991 @@
+<view class="container">
+  <!-- 顶部输入 -->
+  <view class="top-bar">
+    <view class="input-bg">
+      <input class="device-input" placeholder="请输入设备编码" value="{{deviceCode}}" bindinput="onDeviceCodeInput" bindconfirm="onRefresh" />
+      <text wx:if="{{!!deviceCode}}" class="iconfont icon-guanbi" style="font-size: 48rpx;color: gray;padding: 10rpx ;" catch:tap="clearCode"></text>
+      <text class="iconfont icon-iconfontscan" style="font-size: 48rpx;color: var(--mainThemeText);padding: 10rpx 20rpx;" catch:tap="onScanCode"></text>
+    </view>
+
+    <text class="cuIcon-filter" style="font-size: 36rpx;color: orangered;padding: 10rpx 30rpx;" catch:tap="showMoreFilter"> </text>
+  </view>
+  <!-- 按钮操作区 - 金属质感按钮 -->
+  <view wx:if="{{false}}" class="cmd-group-2">
+    <!-- 金属质感按钮 - 设置BT码 -->
+    <view class="metallic-button chrome {{activeSize}} {{setBtCodePressed ? 'pressed' : ''}}" bindtouchstart="buttonTouchStart" bindtouchend="buttonTouchEnd" bindtouchcancel="buttonTouchCancel" catchtap="onSetBtCode" hover-class="btn-active" data-type="setBtCode">
+      <view class="button-content">
+        <view class="button-text">设置BT码</view>
+      </view>
+      <view class="shine"></view>
+      <view class="press-effect chrome {{setBtCodePressed ? 'active' : ''}}"></view>
+      <view class="inner-shadow {{setBtCodePressed ? 'active' : ''}}"></view>
+    </view>
+
+    <!-- 金属质感按钮 - 配置容量 -->
+    <view class="metallic-button chrome {{activeSize}} {{configCapacityPressed ? 'pressed' : ''}}" bindtouchstart="buttonTouchStart" bindtouchend="buttonTouchEnd" bindtouchcancel="buttonTouchCancel" catchtap="onConfigCapacity" hover-class="btn-active" data-type="configCapacity">
+      <view class="button-content">
+        <view class="button-text">设置容量</view>
+      </view>
+      <view class="shine"></view>
+      <view class="press-effect chrome {{configCapacityPressed ? 'active' : ''}}"></view>
+      <view class="inner-shadow {{configCapacityPressed ? 'active' : ''}}"></view>
+    </view>
+
+    <!-- 金属质感按钮 - 修改后台地址 -->
+    <view class="metallic-button chrome {{activeSize}} {{modifyServerPressed ? 'pressed' : ''}}" bindtouchstart="buttonTouchStart" bindtouchend="buttonTouchEnd" bindtouchcancel="buttonTouchCancel" catchtap="onCheckBeforeModifyServer" hover-class="btn-active" data-type="modifyServer">
+      <view class="button-content">
+        <view class="button-text">设置后台</view>
+      </view>
+      <view class="shine"></view>
+      <view class="press-effect chrome {{modifyServerPressed ? 'active' : ''}}"></view>
+      <view class="inner-shadow {{modifyServerPressed ? 'active' : ''}}"></view>
+    </view>
+  </view>
+
+  <!-- 参数查找下拉选择板块 -->
+  <view class="param-search-row">
+
+    <picker mode="selector" style="width: 70%; margin-right: 30rpx;" range="{{sectionList}}" range-key="dialogTitle" bindchange="onSectionChange">
+      <view class="param-search-picker" style="width: 100%;">{{selectedSection.selectTitle}}
+        <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+      </view>
+    </picker>
+
+    <text class="dialog-btn cancel" catch:tap="showMultiDialog">批量设置</text>
+
+  </view> 
+
+  <!-- 表格整体容器 -->
+  <view class="table" style="width: 100%;">
+    <view style="width: 1400rpx; display: flex; flex-direction: column;">
+      <!-- 表头固定 -->
+      <view class="table-row table-header">
+        <view class="table-cell checkbox-cell" style="flex: 0.2; min-width: 60rpx;" catchtap="onToggleSelectAll">
+          <checkbox checked="{{selectAll}}" />
+        </view>
+        <view class="table-cell" style="flex: 1.2; min-width: 200rpx;">bms编码</view>
+        <view class="table-cell" style="flex: 0.5; min-width: 80rpx;">串数</view>
+        <view class="table-cell" style="flex: 0.5; min-width: 80rpx;">材料</view>
+        <view class="table-cell" style="flex: 0.5; min-width: 100rpx;">容量(Ah)</view>
+        <view class="table-cell" style="flex: 0.5; min-width: 100rpx;">状态</view>
+        <view class="table-cell" style="flex: 1.5; min-width: 100rpx;">BT码</view>
+        <view class="table-cell" style="flex: 1.5; min-width: 100rpx;">三方后台</view>
+      </view>
+      <!-- 内容滚动 -->
+      <scroll-view class="table-scroll" scroll-y="true" style="height:{{winHeight - 200}}px;" bindscrolltolower="loadMore" bindrefresherrefresh="onSearchConfirm" refresher-enabled="{{true}}" refresher-triggered="{{refresherTriggered}}" refresher-threshold="10" refresher-background="#f5f5f5">
+        <block wx:for="{{deviceList}}" wx:key="index">
+          <view class="table-row">
+            <view class="table-cell checkbox-cell" style="flex: 0.2; min-width: 60rpx;">
+              <checkbox checked="{{item.checked}}" catchtap="onCheckItem" data-index="{{index}}" />
+            </view>
+            <view class="table-cell" style="flex: 1.2; min-width: 200rpx;color:{{item.online==1?'blue':'#333'}};" catchtap="onRowTap" data-code="{{item.bmsId}}">{{item.bmsId}}</view>
+            <view class="table-cell" style="flex: 0.5; min-width: 80rpx;">{{item.cellCnt}}</view>
+            <view class="table-cell" style="flex: 0.5; min-width: 80rpx;">{{item.cellMat == 1?'铁锂':(item.cellMat == 2?'三元':'')}}</view>
+            <view class="table-cell" style="flex: 0.5; min-width: 100rpx;">{{item.capactiyD}}</view>
+            <view class="table-cell" style="flex: 0.5; min-width: 80rpx;color: {{item.online==1?'blue':''}};">{{item.online == 1?'在线':'离线'}} </view>
+            <view class="table-cell" style="flex: 1.5; min-width: 80rpx;">{{item.btCode}} </view>
+            <view class="table-cell" style="flex: 1.5; min-width: 80rpx;">{{item.tServer}}</view>
+          </view>
+        </block>
+        <!-- 加载更多提示 -->
+        <view wx:if="{{loadingMore}}" class="loading-more">
+          <!-- <image src="/images/loading.gif" class="loading-icon"></image> -->
+          <text>正在加载更多...</text>
+        </view>
+        <view wx:if="{{noMore}}" class="no-more">
+          <text>—— 已经到底了 ——</text>
+        </view>
+
+      </scroll-view>
+    </view>
+  </view>
+</view>
+
+
+<!--  过滤筛选 start-->
+<view wx:if="{{showFilter}}" class="box-qlmv" bindtouchstart='touchStart' bindtouchmove='touchMove' bindtouchend="touchEnd">
+  <view class="box_option_container">
+    <!-- 过滤的选项 start -->
+
+    <!-- 在线状态 start -->
+    <view class="box_mvxa">
+      <view class="box_lqaz">
+        <text style="font-weight: bold;  font-size: 28rpx;color: #343434;"><text class="cuIcon-titles" style="color:var(--cyan);"></text> 在线状态</text>
+      </view>
+      <view class="box_yunm">
+        <view class='input-container' catchtap="showDevOnlineList">
+          <input class='code-input' placeholder='选择在线状态' placeholder-class='placeholder' value='{{selectDevOnlineItem.title}}' disabled="{{true}}"></input>
+          <view class='box-iknm'>
+            <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;transform: rotate({{devOnlineShow?'180deg':'0deg'}});"></text>
+
+          </view>
+        </view>
+        <scroll-view wx:if="{{devOnlineShow}}" class="box_pert" show-scrollbar="true" scroll-y="true">
+          <block wx:for="{{onlineOptions}}" wx:key="item">
+            <view style="width: 100%; padding: 10rpx 30rpx;border-bottom: 1rpx solid white;" catchtap="selectDevOnline" data-index="{{index}}" data-item="{{item}}">
+              {{item.title}}
+            </view>
+          </block>
+        </scroll-view>
+
+      </view>
+    </view>
+    <!-- 在线状态 end -->
+
+    <!-- 材料类型 start -->
+    <view class="box_mvxa">
+      <view class="box_lqaz">
+        <text style="font-weight: bold;  font-size: 28rpx;color: #343434;"><text class="cuIcon-titles" style="color:var(--cyan);"></text> 材料类型</text>
+      </view>
+      <view class="box_yunm">
+        <view class='input-container' catchtap="showMeterialList">
+          <input class='code-input' placeholder='选择材料类型' placeholder-class='placeholder' value='{{selectMetarailFilterItem.title}}' disabled="{{true}}"></input>
+          <view class='box-iknm'>
+            <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;transform: rotate({{meterialShow?'180deg':'0deg'}});"></text>
+
+          </view>
+        </view>
+        <scroll-view wx:if="{{meterialShow}}" class="box_pert" show-scrollbar="true" scroll-y="true">
+          <block wx:for="{{materialArray}}" wx:key="item">
+            <view style="width: 100%; padding: 10rpx 30rpx;border-bottom: 1rpx solid white;" catchtap="selectMeterial" data-index="{{index}}" data-item="{{item}}">
+              {{item.title}}
+            </view>
+          </block>
+        </scroll-view>
+
+      </view>
+    </view>
+    <!-- 材料类型 end -->
+
+    <!-- 电芯串数 start -->
+    <view class="box_mvxa">
+      <view class="box_lqaz">
+        <text style="font-weight: bold;  font-size: 28rpx;color: #343434;"><text class="cuIcon-titles" style="color:var(--cyan);"></text> 电芯串数</text>
+      </view>
+      <view class="box_yunm">
+        <view class='input-container'>
+          <input class='code-input' placeholder='输入电芯串数' placeholder-class='placeholder' value='{{selectStockValue}}' type="number" maxlength="2" bindinput="onInpuCellCount"></input>
+          <view class='box-iknm'>
+          </view>
+        </view>
+
+      </view>
+    </view>
+    <!-- 电芯串数 end -->
+
+    <!-- BT码 start -->
+    <view class="box_mvxa">
+      <view class="box_lqaz">
+        <text style="font-weight: bold;  font-size: 28rpx;color: #343434;"><text class="cuIcon-titles" style="color:var(--cyan);"></text> BT码</text>
+      </view>
+      <view class="box_yunm">
+        <view class='input-container'>
+          <input class='code-input' placeholder='请输入BT码' placeholder-class='placeholder' value='{{filterBtCode}}' disabled="{{true}}" bindinput="onInputBtCode"></input>
+          <view class='box-iknm' catch:tap="onScanCodeBT">
+            <text class="cuIcon-scan" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+          </view>
+        </view>
+
+      </view>
+    </view>
+    <!-- BT码 end -->
+
+    <!-- 组织 start -->
+    <view class="box_mvxa">
+      <view class="box_lqaz">
+        <text style="font-weight: bold;  font-size: 28rpx;color: #343434;"><text class="cuIcon-titles" style="color:var(--cyan);"></text> 组织名称</text>
+      </view>
+      <view class="box_yunm">
+        <view class='input-container' catchtap="onSelectGroup">
+          <input class='code-input' placeholder='请选择组织' placeholder-class='placeholder' value='{{selectedOrg.org_name}}' disabled="{{true}}"></input>
+          <view class='box-iknm'>
+            <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+          </view>
+        </view>
+
+      </view>
+    </view>
+    <!-- 组织 end -->
+
+    <!-- 重置和确定按钮 start -->
+    <view class="box_bottom_btns">
+      <view class="box_bottom_btn_item" bindtap="onSelectReset">重置</view>
+      <view class="box_bottom_btn_item box_bottom_btn_item--danger" bindtap="onFilterConfirm">确定</view>
+    </view>
+    <!-- 重置和确定按钮 end -->
+  </view>
+
+</view>
+<!-- 过滤筛选 end -->
+
+<!-- 参数设置 -->
+<page-container show="{{isShowMultiDialog}}" duration="300" position="right" close-on-slide-down="{{false}}" bindbeforeenter="onBeforeEnter" bindenter="onEnter" bindafterenter="onAfterEnter" bindbeforeleave="onBeforeLeave" bindleave="onLeave" bindafterleave="onAfterLeave" bindclickoverlay="onClickOverlay">
+
+  <!-- bt码编辑 -->
+  <scroll-view wx:if="{{selectedSection.id == 1}}" style="width: 100%;height: {{winHeight}}px;padding-bottom: 50rpx;" scroll-y="true">
+    <!-- bt码编辑输入框 -->
+    <view class="dailog-btcode-container">
+      <view class="btcode-dialog">
+        <view class="text_dfso" catch:tap="hideDialogModal"> <text class="cuIcon-roundclose"></text> </view>
+        <!-- 已选设备 -->
+        <view class="box_dkaf">
+          <!-- bmsid -->
+          <view class="box_zla1">
+            <view class="box_9ola">BMS编码（{{selectedDevices.length}}）<text class="iconfont icon-iconfontscan" style="font-size:48rpx;color: var(--mainThemeText);padding: 10rpx;" catch:tap="onScanCodeWithDialog"></text></view>
+            <scroll-view wx:if="{{false}}" scroll-y class="bms-scroll">
+              <block wx:for="{{selectedDevices}}" wx:key="bmsId">
+                <view class="bms-item">
+                  {{item.bmsId}}
+                </view>
+              </block>
+            </scroll-view>
+
+
+            <view wx:else class="box_kddf">
+              <textarea class="text-jfaf" value="{{devString}}" maxlength="-1" bindinput="onInputDev" />
+              <text wx:if="{{devString}}" class="cuIcon-roundclosefill" style="padding: 10rpx 20rpx; font-size: 42rpx; position: absolute;right: -20rpx;top: -10rpx;color: gray;z-index: 10;" catch:tap="clearInputDevs"></text>
+            </view>
+          </view>
+
+          <!-- bt码id -->
+          <view class="box_zla2">
+            <view class="box_9ola">生成BT码（{{bt_code_list.length}}）<button class="dialog-btn small cancel" style="width: 100rpx;" catch:tap="onCopyBtCodes">复制</button> </view>
+            <scroll-view scroll-y class="bms-scroll">
+              <block wx:for="{{bt_code_list}}" wx:key="bmsId">
+                <view class="bms-item">
+                  {{item}}
+                </view>
+              </block>
+            </scroll-view>
+          </view>
+
+        </view>
+
+
+        <!-- BT码生成规则 -->
+        <view class="section section-has-title">
+          <view class="section-title2">BT码生成规则</view>
+          <view class="box_poii">
+            <view class="box-left">
+              <!-- 产品名称 (固定BT) -->
+              <view class="form-item">
+                <text class="label">产品名称</text>
+                <view class="box_lkdk">
+                  <text>BT</text>
+                </view>
+              </view>
+
+              <!-- 电压等级 -->
+              <view class="form-item">
+                <text class="label">电压等级</text>
+                <!-- <input type="number" value="{{btVoltageValue}}"  maxlength="3" bindinput="onBtVoltageInput" class="voltage-input manufacturer-input" /> -->
+
+                <view class="param-input-picker">
+                  <input type="number" value="{{btVoltageValue}}" maxlength="3" bindinput="onBtVoltageInput" class="box_io98" />
+                  <picker mode="selector" range="{{btVolArray}}" bindchange="onBtVolChange">
+                    <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                  </picker>
+                </view>
+              </view>
+
+
+              <!-- 循环寿命 -->
+              <view class="form-item">
+                <text class="label">循环寿命</text>
+                <!-- <input type="number" value="{{btCycleLifeValue}}" bindinput="onBtCycleLifeInput"   maxlength="2" class="life-input manufacturer-input" /> -->
+
+                <view class="param-input-picker">
+                  <input type="number" value="{{btCycleLifeValue}}" bindinput="onBtCycleLifeInput" maxlength="2" class="box_io98" />
+                  <picker mode="selector" range="{{btLoopArray}}" bindchange="onBtLoopChange">
+                    <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                  </picker>
+                </view>
+              </view>
+
+
+              <!-- 生产年份 -->
+              <view class="form-item">
+                <text class="label">生产年份</text>
+                <picker style="width: 130rpx;padding-left: 10rpx;border-radius: 0;" mode="date" fields="year" start="{{starTimeY}}" end="{{endTimeY}}" header-text="选择年份" bindchange="onBtYearChange222">
+                  <view class="param-picker" style="width: 130rpx;">
+                    <text>{{btProductionYear}}</text>
+                    <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                  </view>
+                </picker>
+              </view>
+              <!-- 生产日期 -->
+              <view wx:if="{{false}}" class="form-item">
+                <text class="label">生产日期</text>
+                <picker style="width: 130rpx;padding-left: 10rpx;border-radius: 0;" mode="date" fields="day" start="{{starTimeD}}" end="{{endTimeD}}" bindchange="onBtDayChange222">
+
+                  <view class="param-picker" style="width: 130rpx;">
+                    <text>{{btProductionYear}}{{btProductionMonth}}{{btProductionDay}}</text>
+                    <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                  </view>
+                </picker>
+              </view>
+
+
+            </view>
+            <view class="box-right">
+              <!-- 材料体系 -->
+              <view class="form-item">
+                <text class="label2">材料体系</text>
+                <picker style="width: 130rpx;padding-left: 10rpx;border-radius: 0;" mode="selector" range="{{materialArray}}" range-key="title" bindchange="onMaterialChange">
+                  <view class="param-picker" style="width: 130rpx;">
+                    <text>{{selectedMaterial.title}}</text>
+                    <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                  </view>
+                </picker>
+              </view>
+
+
+              <!-- 容量等级 -->
+              <view class="form-item">
+                <text class="label2">容量等级</text>
+                <!-- <input type="number" value="{{btCapacityValue}}" bindinput="onBtCapacityInput"   maxlength="3" class="capacity-input manufacturer-input" /> -->
+
+                <view class="param-input-picker">
+                  <input type="number" value="{{btCapacityValue}}" bindinput="onBtCapacityInput" maxlength="3" class="box_io98" />
+
+                  <picker mode="selector" range="{{btCapacityArray}}" bindchange="onBtCapacityChange">
+                    <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                  </picker>
+                </view>
+              </view>
+
+              <!-- 厂家代码 -->
+              <view class="form-item">
+                <text class="label2">厂家代码</text>
+                <input type="text" value="{{btManufacturerValue}}" bindinput="onbtManufacturerValueInput" placeholder="输入4位厂家代码" maxlength="4" class="box_io98" style="padding: 0 10rpx; margin-left: 10rpx;width: 130rpx;" />
+              </view>
+              <!-- 生产月份 -->
+              <view wx:if="{{false}}" class="form-item">
+                <text class="label2">生产月份</text>
+                <picker wx:if="{{!!btProductionYear}}" style="width: 130rpx;padding-left: 10rpx;border-radius: 0;" mode="date" fields="month" start="{{starTimeM}}" end="{{endTimeM}}" bindchange="onBtMonthChange222">
+                  <view class="param-picker">
+                    <text>{{btProductionMonth}}</text>
+                    <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                  </view>
+                </picker>
+
+
+                <view wx:else class="box_lkdk" catch:tap="showTips" data-filed="month">
+                  <text style="width: 10rpx;"></text>
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </view>
+              </view>
+              <!-- 流水号 -->
+              <view wx:if="{{false}}" class="form-item">
+                <text class="label2" decode="{{true}}">流水号 &nbsp;</text>
+
+                <view class="param-input-picker">
+                  <input type="number" value="{{btSerialNumber}}" bindinput="onBtSerialNumberInput" maxlength="3" class="box_io98" />
+
+
+                  <picker mode="selector" range="{{btSerialNumArray}}" bindchange="onBtSerialNumChange">
+                    <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                  </picker>
+                </view>
+              </view>
+
+
+            </view>
+          </view>
+        </view>
+
+        <view class="dialog-buttons" style="padding: 0 30rpx;margin-bottom: 30rpx; ">
+          <!-- <view style="width: 30%;"></view> -->
+          <button class="dialog-btn cancel" catch:tap="onClearGenerateBtcode">清除</button>
+
+          <button class="dialog-btn cancel" catch:tap="onMultiProduct">生产BT码</button>
+          <button class="dialog-btn confirm" catch:tap="onSubmitBtcodes">BT码写入</button>
+        </view>
+
+
+        <radio-group class="modal-radio-group" bindchange="onOfflineTaskChange">
+          <label class="radio-item">
+            <radio value="0" checked="{{offlineTask === 0}}" style="transform: scale(0.8);" /> 仅配置在线设备
+          </label>
+          <label class="radio-item">
+            <radio value="1" checked="{{offlineTask === 1}}" style="transform: scale(0.8);" /> 配置所有设备（包括离线设备，系统配置离线任务，待设备上线后执行）
+          </label>
+        </radio-group>
+
+        <view wx:if="{{false}}" class="dialog-buttons" style="padding: 0 30rpx;margin-bottom: 30rpx; ">
+          <view style="width: 30%;"></view>
+          <button class="dialog-btn cancel" catch:tap="hideBtDialog">取消</button>
+          <button class="dialog-btn confirm" catch:tap="onSubmitBtcodes">确定</button>
+        </view>
+
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 其他参数 -->
+  <scroll-view wx:elif="{{selectedSection.id != 0}}" style="width: 100%;height: {{winHeight}}px;padding-bottom: 50rpx;" scroll-y="true">
+    <view class="dailog-btcode-container">
+      <view class="btcode-dialog">
+        <view class="text_dfso" catch:tap="hideDialogModal"> <text class="cuIcon-roundclose"></text> </view>
+        <view class="modal-title">{{selectedSection.dialogTitle}}</view>
+
+        <!-- 已选设备 -->
+        <view wx:if="{{false}}" class="box_zla1" style="width: 90%;margin-left: 5%;margin-top: 30rpx;">
+          <view class="box_9ola">BMS编码（{{selectedDevices.length}}）</view>
+          <scroll-view scroll-y class="bms-scroll">
+            <block wx:for="{{selectedDevices}}" wx:key="bmsId">
+              <view class="bms-item">
+                {{item.bmsId}}
+              </view>
+            </block>
+          </scroll-view>
+
+        </view>
+
+        <!-- 改用输入框 -->
+        <view style="width: 100%;display: flex;flex-direction: column;padding: 30rpx;">
+          <view style="display: flex;align-items: center;justify-content: flex-start;margin-bottom: 10rpx;">
+            <text class="text-9oag"> <text class="cuIcon-titles" style="color:var(--cyan);"></text>设备编码 (逗号、换行分割)</text>
+            <text wx:if="{{!!validDevList}}" style="margin:0 10rpx; color: orangered;">数量：{{validDevList.length}}</text>
+            <text class="iconfont icon-iconfontscan" style="font-size:48rpx;color: var(--mainThemeText);padding: 20rpx 30rpx;" catch:tap="onScanCodeWithDialog"></text>
+          </view>
+
+
+          <view class="box_kddf">
+            <textarea class="text-jfaf" value="{{devString}}" maxlength="-1" bindinput="onInputDev" />
+            <text wx:if="{{devString}}" class="cuIcon-roundclosefill" style="padding: 10rpx 20rpx; font-size: 42rpx; position: absolute;right: -20rpx;top: -10rpx;color: gray;z-index: 10;" catch:tap="clearInputDevs"></text>
+            <!-- <text class="text-ad32" catch:tap="onPreview">识别</text> -->
+
+          </view>
+        </view>
+
+        <!-- 选择材料类型 -->
+        <view wx:if="{{selectedSection.id == 4 || selectedSection.id == 10 || selectedSection.id == 11 || selectedSection.id == 12}}" style="width: 100%;display: flex;flex-direction: column;padding: 30rpx 30rpx 0 30rpx;">
+          <view style="display: flex;align-items: center;justify-content: flex-start;margin-bottom: 10rpx;">
+            <radio-group bindchange="onMaterialRadioChange" style="display: flex; align-items: center;">
+              <label class="radio-item">
+                <radio value="1" checked="{{dialogMaterial==1}}" style="transform: scale(0.8);" /> 按铁锂参数配
+              </label>
+              <label class="radio-item">
+                <radio value="2" checked="{{dialogMaterial==2}}" style="transform: scale(0.8);margin-left: 50rpx;" /> 按三元参数配
+              </label>
+            </radio-group>
+          </view>
+
+        </view>
+        <!-- 电芯串数默认 20 串 -->
+
+
+        <!-- 三方地址 -->
+        <view wx:if="{{selectedSection.id == 2}}" class="selected-bms-list">
+          <view class="selected-title">服务器地址：</view>
+          <!-- <input placeholder="域名:端口 或者 IP:端口" value="{{serverInput}}" bindinput="onServerInput" class="modal-input" /> -->
+          <picker style="width: 75%;" mode="selector" range="{{thirdSrvList}}" range-key="title" bindchange="onThirdSrvChage">
+            <view class="param-picker" style="width:80%;">
+              <text>{{thirdSrv.title}}</text>
+              <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+            </view>
+          </picker>
+        </view>
+        <!-- 基础参数 -->
+        <view wx:if="{{selectedSection.id == 3}}" class="params-container">
+          <view class="param-row">
+            <view class="param-col">
+              <view style="display: flex;flex-direction: row;  ">
+                <text>电芯材料</text>
+              </view>
+              <picker mode="selector" range="{{materialArray}}" range-key="title" bindchange="onMaterialChange">
+                <view class="param-picker">
+                  <text>{{selectedMaterial.title}}</text>
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </view>
+              </picker>
+            </view>
+            <view class="param-col2">
+              <text style="margin-right: 10rpx;">电芯串数</text>
+              <picker mode="selector" range="{{seriesOptions}}" bindchange="onSeriesChange">
+                <view class="param-picker">
+                  <text>{{params.cell_cnt}}</text>
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </view>
+
+              </picker>
+            </view>
+
+            <view class="param-col">
+              <view style="display: flex;flex-direction: row;">
+                <text>电芯容量(Ah)</text>
+              </view>
+
+              <view class="param-input-picker">
+                <input type="number" value="{{params.designed_capD}}" bindinput="onCapacityInput" />
+                <picker mode="selector" range="{{capacityOptions}}" bindchange="onCapacitySelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+
+            </view>
+
+          </view>
+
+
+        </view>
+
+        <!-- 电芯过压保护配置 -->
+        <view wx:if="{{selectedSection.id == 4}}" class="params-container">
+          <view class="param-row">
+            <view class="param-col">
+              <view style="display: flex;flex-direction: row;">
+                <text>触发门限</text>
+                <text>(mV)</text>
+              </view>
+
+              <view class="param-input-picker">
+                <input type="number" value="{{params.cell_OVT}}" bindinput="onCellOVTInput" />
+                <picker mode="selector" range="{{ovtOptions}}" bindchange="onOVTSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+            <view class="param-col2">
+              <text>延时(S)</text>
+              <view class="param-input-picker">
+                <input type="digit" value="{{params.cell_OVDD}}" bindinput="onCellOVDInput" />
+                <picker mode="selector" range="{{ovdOptions}}" bindchange="onOVDSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+          </view>
+          <view class="param-row">
+            <view class="param-col">
+              <view style="display: flex;flex-direction: row;">
+                <text>恢复门限</text>
+                <text>(mV)</text>
+              </view>
+              <view class="param-input-picker">
+                <input type="number" value="{{params.cell_OVRT}}" bindinput="onCellOVRTInput" />
+                <picker mode="selector" range="{{ovrtOptions}}" bindchange="onOVRTSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+            <view class="param-col2">
+              <text>延时(S)</text>
+              <view class="param-input-picker">
+                <input type="digit" value="{{params.cell_OVRDD}}" bindinput="onCellOVRDInput" />
+                <picker mode="selector" range="{{ovrdOptions}}" bindchange="onOVRDSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+          </view>
+        </view>
+        <!-- I级放电过流 -->
+        <view wx:if="{{selectedSection.id == 5}}" class="params-container">
+          <view class="param-row">
+            <view class="param-col">
+              <view style="display: flex;flex-direction: row;">
+                <text>触发门限</text>
+                <text>(A)</text>
+              </view>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_OCD1TD}}" bindinput="onBatOCD1TInput" />
+                <picker mode="selector" range="{{ocd1tOptions}}" bindchange="onOCD1TSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+            <view class="param-col2">
+              <text>延时(S)</text>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_OCD1DD}}" bindinput="onBatOCD1DInput" />
+                <picker mode="selector" range="{{ocd1dOptions}}" bindchange="onOCD1DSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+          </view>
+
+          <view class="param-row">
+            <view wx:if="{{false}}" class="param-col2">
+              <view style="display: flex;flex-direction: row;">
+                <text>恢复门限</text>
+                <text>(A)</text>
+              </view>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_OCD1RTD}}" bindinput="onBatOCD1RTInput" disabled="true" />
+                <picker mode="selector" range="{{ocd1rtOptions}}" bindchange="onOCD1RTSelect" disabled="true">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+            <view class="param-col">
+              <text>恢复延时(S)</text>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_OCD1RDD}}" bindinput="onBatOCD1RDInput" />
+                <picker mode="selector" range="{{ocd1rdOptions}}" bindchange="onOCD1RDSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+          </view>
+        </view>
+        <!-- II级放电过流 -->
+        <view wx:if="{{selectedSection.id == 6}}" class="params-container">
+          <view class="param-row">
+            <view class="param-col">
+              <view style="display: flex;flex-direction: row;">
+                <text>触发门限</text>
+                <text>(A)</text>
+              </view>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_OCD2TD}}" bindinput="onBatOCD2TInput" />
+                <picker mode="selector" range="{{ocd2tOptions}}" bindchange="onOCD2TSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+            <view class="param-col2">
+              <text>延时(S)</text>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_OCD2DD}}" bindinput="onBatOCD2DInput" />
+                <picker mode="selector" range="{{ocd2dOptions}}" bindchange="onOCD2DSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+          </view>
+          <view class="param-row">
+            <view wx:if="{{false}}" class="param-col">
+              <view style="display: flex;flex-direction: row;">
+                <text>恢复门限</text>
+                <text>(A)</text>
+              </view>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_OCD2RTD}}" bindinput="onBatOCD2RTInput" disabled="true" />
+                <picker mode="selector" range="{{ocd2rtOptions}}" bindchange="onOCD2RTSelect" disabled="true">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+            <view class="param-col">
+              <text>恢复延时(S)</text>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_OCD2RDD}}" bindinput="onBatOCD2RDInput" />
+                <picker mode="selector" range="{{ocd2rdOptions}}" bindchange="onOCD2RDSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+          </view>
+        </view>
+        <!-- 放电短路保护 -->
+        <view wx:if="{{selectedSection.id == 7}}" class="params-container">
+          <view class="param-row">
+            <view class="param-col">
+              <view style="display: flex;flex-direction: row;">
+                <text>触发门限</text>
+                <text>(A)</text>
+              </view>
+              <view class="param-input-picker">
+                <input type="number" value="{{params.bat_SCDTD}}" bindinput="onBatSCDTInput" />
+                <picker mode="selector" range="{{scdtOptions}}" bindchange="onSCDTSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+            <view class="param-col2">
+              <text>延时(us)</text>
+              <view class="param-input-picker">
+                <input type="number" value="{{params.bat_SCDDD}}" bindinput="onBatSCDDInput" />
+                <picker mode="selector" range="{{scddOptions}}" bindchange="onSCDDSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+          </view>
+        </view>
+        <!-- I级充电过流 -->
+        <view wx:if="{{selectedSection.id == 8}}" class="params-container">
+          <view class="param-row">
+            <view class="param-col">
+              <view style="display: flex;flex-direction: row;">
+                <text>触发门限</text>
+                <text>(A)</text>
+              </view>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_OCC1TD}}" bindinput="onBatOCC1TInput" />
+                <picker mode="selector" range="{{occ1tOptions}}" bindchange="onOCC1TSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+            <view class="param-col2">
+              <text>延时(S)</text>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_OCC1DD}}" bindinput="onBatOCC1DInput" />
+                <picker mode="selector" range="{{occ1dOptions}}" bindchange="onOCC1DSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+          </view>
+          <view class="param-row">
+            <view wx:if="{{false}}" class="param-col2">
+              <view style="display: flex;flex-direction: row;">
+                <text>恢复门限</text>
+                <text>(A)</text>
+              </view>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_OCC1RTD}}" bindinput="onBatOCC1RTInput" disabled="true" />
+                <picker mode="selector" range="{{occ1rtOptions}}" bindchange="onOCC1RTSelect" disabled="true">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+            <view class="param-col">
+              <text>恢复延时(S)</text>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_OCC1RDD}}" bindinput="onBatOCC1RDInput" />
+                <picker mode="selector" range="{{occ1rdOptions}}" bindchange="onOCC1RDSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+          </view>
+        </view>
+        <!-- II级充电过流 -->
+        <view wx:if="{{selectedSection.id == 9}}" class="params-container">
+          <view class="param-row">
+            <view class="param-col">
+              <view style="display: flex;flex-direction: row;">
+                <text>触发门限</text>
+                <text>(A)</text>
+              </view>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_OCC2TD}}" bindinput="onBatOCC2TInput" />
+                <picker mode="selector" range="{{occ2tOptions}}" bindchange="onOCC2TSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+            <view class="param-col2">
+              <text>延时(S)</text>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_OCC2DD}}" bindinput="onBatOCC2DInput" />
+                <picker mode="selector" range="{{occ2dOptions}}" bindchange="onOCC2DSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+          </view>
+          <view class="param-row">
+            <view wx:if="{{false}}" class="param-col2">
+              <view style="display: flex;flex-direction: row;">
+                <text>恢复门限</text>
+                <text>(A)</text>
+              </view>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_OCC2RTD}}" bindinput="onBatOCC2RTInput" disabled="true" />
+                <picker mode="selector" range="{{occ2rtOptions}}" bindchange="onOCC2RTSelect" disabled="true">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+            <view class="param-col">
+              <text>恢复延时(S)</text>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_OCC2RDD}}" bindinput="onBatOCC2RDInput" />
+                <picker mode="selector" range="{{occ2rdOptions}}" bindchange="onOCC2RDSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+          </view>
+        </view>
+
+         <!--  10-电芯欠压保护配置 -->
+         <view wx:if="{{selectedSection.id == 10}}" class="params-container">
+          <view class="param-row">
+            <view class="param-col">
+              <view style="display: flex;flex-direction: row;">
+                <text>触发门限</text>
+                <text>(mV)</text>
+              </view>
+
+              <view class="param-input-picker">
+                 <input type="number" value="{{params.cell_UVT}}" bindinput="onCellUVTInput" />
+                <picker mode="selector" range="{{cellUvtOptions}}" bindchange="onCellUVTSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+            <view class="param-col2">
+              <text>延时(S)</text>
+              <view class="param-input-picker">
+                 <input type="digit" value="{{params.cell_UVDD}}" bindinput="onCellUVDInput" />
+                <picker mode="selector" range="{{cellUvdOptions}}" bindchange="onCellUVDSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+          </view>
+          <view class="param-row">
+            <view class="param-col">
+              <view style="display: flex;flex-direction: row;">
+                <text>恢复门限</text>
+                <text>(mV)</text>
+              </view>
+              <view class="param-input-picker">
+                 <input type="number" value="{{params.cell_UVRT}}" bindinput="onCellUVRTInput" />
+                <picker mode="selector" range="{{cellUvrtOptions}}" bindchange="oCellUVRTSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+            <view class="param-col2">
+              <text>延时(S)</text>
+              <view class="param-input-picker">
+                 <input type="digit" value="{{params.cell_UVRDD}}" bindinput="onCellUVRDInput" />
+                <picker mode="selector" range="{{cellUvrdOptions}}" bindchange="onCellUVRDSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+          </view>
+        </view>
+
+         <!--  11-总压过压保护配置 -->
+         <view wx:if="{{selectedSection.id == 11}}" class="params-container">
+          <view class="param-row">
+            <view class="param-col">
+              <view style="display: flex;flex-direction: row;">
+                <text>触发门限</text>
+                <text>(mV)</text>
+              </view>
+
+              <view class="param-input-picker">
+                 <input type="digit"value="{{params.bat_OVTD}}" bindinput="onBatOVTInput" />
+                <picker mode="selector" range="{{batOVTOptions}}" bindchange="onBatOVTSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+            <view class="param-col2">
+              <text>延时(S)</text>
+              <view class="param-input-picker">
+                 <input type="digit" value="{{params.bat_OVDD}}" bindinput="onBatOVDInput" />
+                <picker mode="selector" range="{{batOVDOptions}}" bindchange="onBatOVDSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+          </view>
+          <view class="param-row">
+            <view class="param-col">
+              <view style="display: flex;flex-direction: row;">
+                <text>恢复门限</text>
+                <text>(mV)</text>
+              </view>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_OVRTD}}" bindinput="onBatOVRTInput" />
+                <picker mode="selector" range="{{batOVRTOptions}}" bindchange="onBatOVRTSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+            <view class="param-col2">
+              <text>延时(S)</text>
+              <view class="param-input-picker">
+                <input type="digit" value="{{params.bat_OVRDD}}" bindinput="onBatOVRDInput" />
+                <picker mode="selector" range="{{batOVRDOptions}}" bindchange="onBatOVRDSelect">
+                  <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+                </picker>
+              </view>
+            </view>
+          </view>
+        </view>
+
+          <!--  12- 总压欠压保护配置 -->
+          <view wx:if="{{selectedSection.id == 12}}" class="params-container">
+          <view class="param-row">
+            <view class="param-col">
+              <view style="display: flex;flex-direction: row;">
+                <text>触发门限</text>
+                <text>(mV)</text>
+              </view>
+
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_UVTD}}" bindinput="onBatUVTInput" />
+            <picker mode="selector" range="{{batUTVOptions}}" bindchange="onBatUVTSelect">
+              <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+            </picker>
+              </view>
+            </view>
+            <view class="param-col2">
+              <text>延时(S)</text>
+              <view class="param-input-picker">
+                <input type="digit" value="{{params.bat_UVDD}}" bindinput="onBatUVDInput" />
+            <picker mode="selector" range="{{batUVDOptions}}" bindchange="onBatUVDSelect">
+              <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+            </picker>
+              </view>
+            </view>
+          </view>
+          <view class="param-row">
+            <view class="param-col">
+              <view style="display: flex;flex-direction: row;">
+                <text>恢复门限</text>
+                <text>(mV)</text>
+              </view>
+              <view class="param-input-picker">
+                <input type="digit"value="{{params.bat_UVRTD}}" bindinput="onBatUVRTInput" />
+            <picker mode="selector" range="{{batUVRTOptions}}" bindchange="onBatUVRTSelect">
+              <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+            </picker>
+              </view>
+            </view>
+            <view class="param-col2">
+              <text>延时(S)</text>
+              <view class="param-input-picker">
+                <input type="digit" value="{{params.bat_UVRDD}}" bindinput="onBatUVRDInput" />
+              <picker mode="selector" range="{{batUVRDOptions}}" bindchange="onUVRDSelect">
+                <text class="iconfont icon-xiala" style="font-size: 36rpx;padding: 10rpx 0;color: gray;"></text>
+              </picker>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 13- 放电开关配置 -->
+
+        <radio-group class="modal-radio-group" bindchange="onOfflineTaskChange">
+          <label class="radio-item">
+            <radio value="0" checked="{{offlineTask === 0}}" style="transform: scale(0.8);" /> 仅配置在线设备
+          </label>
+          <label class="radio-item">
+            <radio value="1" checked="{{offlineTask === 1}}" style="transform: scale(0.8);" /> 配置所有设备（包括离线设备，系统配置离线任务，待设备上线后执行）
+          </label>
+        </radio-group>
+
+        <view wx:if="{{selectedSection.id == 13 || selectedSection.id == 14 || selectedSection.id == 15}}" class="dialog-buttons" style="padding: 0 30rpx;margin-bottom: 30rpx; ">
+          <!-- <view style="width: 30%;"></view> -->
+           <button class="dialog-btn cancel" catchtap="funCtrl" data-op="0" data-confirm="true">{{selectedSection.id == 15?'进展':'关闭'}}</button>
+          <button class="dialog-btn confirm" catchtap="funCtrl" data-op="1" data-confirm="true">{{selectedSection.id == 15?'允许':'打开'}} </button>
+        </view>
+
+        <view wx:else class="dialog-buttons" style="padding: 0 30rpx;margin-bottom: 30rpx; ">
+          <!-- <view style="width: 30%;"></view> -->
+          <button class="dialog-btn cancel" catch:tap="onClearDialogContent">清除</button>
+          <button class="dialog-btn cancel" catch:tap="hideDialogModal">取消</button>
+          <button class="dialog-btn confirm" catch:tap="dailogConfirmSubmit">确定</button>
+        </view>
+
+
+
+      </view>
+    </view>
+  </scroll-view>
+
+</page-container>

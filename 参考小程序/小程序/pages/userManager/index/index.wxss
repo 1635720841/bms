@@ -1,0 +1,53 @@
+/* pages/4Gmodel/4Gmodel.wxss */
+
+page{
+  height: 100%;
+}
+ 
+
+.box-aabb{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.box-uiyy{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding-top: 50rpx;
+  align-items: center;
+  /* justify-content: center; */
+
+}
+
+.img-231a{
+  margin-top: 100rpx;
+  width: 400rpx;
+  height: 400rpx;
+  
+}
+.text-afda{
+  color: #bbb;
+  font-size: 14px;
+  margin: 30rpx;
+}
+
+.text-login{
+  width: 50%;
+  height: 80rpx;
+  background-color: #11998e ;
+  border-radius: 90rpx;
+  color: white;
+  font-size: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+   
+}
+

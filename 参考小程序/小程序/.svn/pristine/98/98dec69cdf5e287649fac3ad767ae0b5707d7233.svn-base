@@ -1,0 +1,30 @@
+<!-- 单选模式，且根节点 -->
+<view class="tree-node {{item.org_id == -1 ? 'top-level' : ''}}" wx:for="{{org_list}}" wx:for-item="item" wx:for-index="idx" wx:key="org_id">
+  <view class="node-content" catchtap="toggleNode" data-id="{{item.org_id}}" data-idx="{{idx}}">
+    <view class="left">
+      <text class="expand-indicator" wx:if="{{!item.isLeaf }}">{{expandedNodes[item.org_id] ? '▾' : '▸'}}</text>
+      <!-- 占位 -->
+      <text class="expand-indicator" wx:else> </text>
+
+      <view class="name-wrap">
+        <text class="name">{{item.org_name}}</text>
+        <text class="loading icon-trans" wx:if="{{item._loading}}"> <text class="cuIcon-loading2"></text></text>
+      </view>
+    </view>
+
+    <view wx:if="{{isSingleRadio && item.org_id !== -1}}" class="node-actions">
+      <text class="edit-btn" catchtap="refreshNode" data-id="{{item.org_id}}" data-idx="{{idx}}"> <text class="cuIcon-refresh"></text></text>
+      <text wx:if="{{selectedOrg && selectedOrg.org_id == item.org_id}}" class="select-btn-active"  > <text class="cuIcon-radiobox"></text> </text>
+      <text wx:else class="select-btn-normal" catchtap="selectNode" data-id="{{item.org_id}}" data-idx="{{idx}}"> <text class="cuIcon-round"></text> </text>
+    </view>
+    <view wx:else class="node-actions">
+      <text hidden="{{item.org_id == -1}}" class="edit-btn" catchtap="refreshNode" data-id="{{item.org_id}}" data-idx="{{idx}}"> <text class="cuIcon-refresh"></text></text>
+      <text wx:if="{{isAdd}}" class="add-btn" catchtap="addChild" data-id="{{item.org_id}}" data-idx="{{idx}}"> <text class="cuIcon-add"></text> </text>
+      <text wx:if="{{isEdit && item.org_id !== -1}}" class="edit-btn" catchtap="editNode" data-id="{{item.org_id}}" data-idx="{{idx}}"> <text class="cuIcon-edit"></text></text>
+    </view>
+  </view>
+
+  <view class="children" wx:if="{{!item.isLeaf && expandedNodes[item.org_id]}}">
+    <tree org_list="{{item.children}}" expandedNodes="{{expandedNodes}}" isSingleRadio="{{isSingleRadio}}" isAdd="{{isAdd}}" isEdit="{{isEdit}}" selectedOrg="{{selectedOrg}}" bind:toggle="toggleNode" bind:add="addChild" bind:edit="editNode" />
+  </view>
+</view>

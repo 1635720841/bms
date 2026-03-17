@@ -1,0 +1,2 @@
+/* pages/userManager/resetPwd/resetPwd.wxss */
+@import "../../groupManager/editOrg/editOrg.wxss";

@@ -1,0 +1,576 @@
+/**app.wxss**/
+
+@import "/static/iconfont/iconfont.wxss";
+@import "/colorui/icon.wxss";
+@import "/colorui/main.wxss";
+
+page {
+  --mainThemeText: #2ecc71;
+}
+
+
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* justify-content: space-between; */
+  box-sizing: border-box;
+}
+
+/* 
+.cmd-btn {
+  width: 180rpx;
+  height: 60rpx;
+  font-size: 24rpx;
+  border-radius: 90rpx;
+  border: none;
+  margin-bottom: 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.1);
+  position: relative;
+  top: 0;
+  transition: all 0.1s ease;
+  font-weight: bold;
+  border: 1rpx solid #ddd;
+  background: linear-gradient(to bottom, #f5f5f5, #e0e0e0);
+}
+
+.cmd-btn.green {
+   color: #1abc1a;
+  text-shadow: 0 1rpx 1rpx rgba(0, 0, 0, 0.2);
+}
+
+.cmd-btn.red {
+   color: #ee0a24;
+  text-shadow: 0 1rpx 1rpx rgba(0, 0, 0, 0.2);
+}
+.cmd-btn.gray {
+  color: #666;
+  text-shadow: 0 1rpx 1rpx rgba(0, 0, 0, 0.2);
+
+}
+
+.cmd-btn.green:active,
+.cmd-btn.red:active,
+.cmd-btn.gray:active, 
+.btn-active {
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+  top: 2rpx;
+  opacity: 0.9;
+  background: linear-gradient(to bottom, #e0e0e0, #d0d0d0);
+
+} */
+
+/* 尺寸选择器 */
+.size-selector {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16rpx;
+  padding: 10rpx;
+  width: 300rpx;
+}
+
+.size-option {
+  padding: 10rpx 20rpx;
+  color: #ffffff;
+  font-size: 28rpx;
+  border-radius: 10rpx;
+  margin: 0 5rpx;
+  transition: all 0.2s ease;
+}
+
+.size-option.active {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+}
+
+/* 金属质感按钮基础样式 */
+.metallic-button {
+  position: relative;
+  width: 300rpx;
+  height: 100rpx;
+  border-radius: 50rpx;
+  background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+  box-shadow: 0 8rpx 16rpx rgba(0, 0, 0, 0.5),
+    inset 0 -4rpx 4rpx rgba(0, 0, 0, 0.3),
+    inset 0 4rpx 4rpx rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  transition: all 0.2s ease;
+  transform: translateY(0);
+  margin-bottom: 20rpx;
+}
+
+/* 按钮尺寸 */
+.metallic-button.small {
+  width: 200rpx;
+  height: 80rpx;
+  border-radius: 40rpx;
+}
+
+.metallic-button.medium {
+  width: 300rpx;
+  height: 100rpx;
+  border-radius: 50rpx;
+}
+
+.metallic-button.large {
+  width: 400rpx;
+  height: 120rpx;
+  border-radius: 60rpx;
+}
+
+/* 按钮内容容器 */
+.button-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+/* 按钮文字 */
+.button-text {
+  color: #e0e0e0;
+  font-size: 32rpx;
+  font-weight: 600;
+  text-shadow: 0 2rpx 2rpx rgba(0, 0, 0, 0.5);
+  letter-spacing: 2rpx;
+  transition: all 0.2s ease;
+}
+
+/* 不同尺寸按钮的文字大小 */
+.small .button-text {
+  font-size: 28rpx;
+}
+
+.medium .button-text {
+  font-size: 32rpx;
+}
+
+.large .button-text {
+  font-size: 36rpx;
+}
+
+/* 金属光泽效果 */
+.shine {
+  position: absolute;
+  top: -120%;
+  left: -200%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(to right,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0) 100%);
+  transform: rotate(45deg);
+  animation: shine 3s infinite;
+  z-index: 1;
+}
+
+/* 按下效果 */
+.metallic-button.pressed {
+  transform: translateY(6rpx);
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.6),
+    inset 0 -1rpx 1rpx rgba(0, 0, 0, 0.4),
+    inset 0 1rpx 1rpx rgba(255, 255, 255, 0.1);
+  background: linear-gradient(145deg, #2a2a2a, #222222);
+}
+
+.metallic-button.pressed .button-text {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+
+/* 按压光晕效果 */
+.press-effect {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 70%);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  z-index: 1;
+  transition: all 0.1s ease-out;
+}
+
+.press-effect.active {
+  width: 150%;
+  height: 150%;
+  opacity: 1;
+  transition: all 0.2s ease-out;
+}
+
+/* 金色按钮的光晕效果 */
+.press-effect.gold {
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, rgba(255, 215, 0, 0) 70%);
+}
+
+/* 铬色按钮的光晕效果 */
+.press-effect.chrome {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+}
+
+/* 内阴影增强效果 */
+.inner-shadow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 rgba(0, 0, 0, 0);
+  opacity: 0;
+  z-index: 1;
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.inner-shadow.active {
+  box-shadow: inset 0 0 20rpx rgba(0, 0, 0, 0.6);
+  opacity: 1;
+}
+
+/* 金色按钮样式 */
+.metallic-button.gold {
+  background: linear-gradient(145deg, #d4af37, #aa8c2c);
+  box-shadow: 0 8rpx 16rpx rgba(0, 0, 0, 0.5),
+    inset 0 -4rpx 4rpx rgba(0, 0, 0, 0.2),
+    inset 0 4rpx 4rpx rgba(255, 255, 255, 0.3);
+}
+
+.metallic-button.gold .button-text {
+  color: #ffffff;
+  text-shadow: 0 2rpx 2rpx rgba(0, 0, 0, 0.3);
+}
+
+.metallic-button.gold.pressed {
+  background: linear-gradient(145deg, #aa8c2c, #9e7c1f);
+  transform: translateY(6rpx);
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.6),
+    inset 0 -1rpx 1rpx rgba(0, 0, 0, 0.3),
+    inset 0 1rpx 1rpx rgba(255, 255, 255, 0.2);
+}
+
+/* 铬色按钮样式 */
+.metallic-button.chrome {
+  background: linear-gradient(145deg, #e8e8e8, #b8b8b8);
+  box-shadow: 0 8rpx 16rpx rgba(0, 0, 0, 0.5),
+    inset 0 -4rpx 4rpx rgba(0, 0, 0, 0.1),
+    inset 0 4rpx 4rpx rgba(255, 255, 255, 0.5);
+}
+
+.metallic-button.chrome .button-text {
+  color: #333333;
+  text-shadow: 0 1rpx 1rpx rgba(255, 255, 255, 0.5);
+}
+
+.metallic-button.chrome.pressed {
+  background: linear-gradient(145deg, #b8b8b8, #a8a8a8);
+  transform: translateY(6rpx);
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.5),
+    inset 0 -1rpx 1rpx rgba(0, 0, 0, 0.2),
+    inset 0 1rpx 1rpx rgba(255, 255, 255, 0.3);
+}
+
+/* 光泽动画 */
+@keyframes shine {
+  0% {
+    left: -200%;
+  }
+
+  40%,
+  100% {
+    left: 200%;
+  }
+}
+
+.btn-metal {
+  margin-bottom: 30rpx;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 40px;
+  padding: 0 24px;
+  border-radius: 16px;
+  border: 1px solid #6e7684;
+  color: #222;
+  font-size: 28rpx;
+  font-weight: 800;
+  letter-spacing: 1px;
+  user-select: none;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  background-image:
+    linear-gradient(180deg, #a8a8a8 0%, #8a8a8a 52%, #757575 100%),
+    repeating-linear-gradient(90deg,
+      rgba(255, 255, 255, 0.08) 0 1px,
+      rgba(0, 0, 0, 0.03) 1px 2px);
+  background-blend-mode: overlay, normal;
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.25) inset,
+    0 -1px 0 0 rgba(0, 0, 0, 0.4) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 1px 0 0 rgba(0, 0, 0, 0.4);
+}
+
+/* 混合按钮：默认状态像第一个，按下时像第二个 */
+.btn-metal--hybrid {
+  transition: all 0.15s ease-out;
+  /* 默认状态：类似第一个按钮的凸起效果 */
+  box-shadow:
+    0 -2px 4px rgba(255, 255, 255, 0.15) inset,
+    0 2px 6px rgba(0, 0, 0, 0.6) inset,
+    0 6px 12px rgba(0, 0, 0, 0.35) inset,
+    0 0 0 1px #5a6069;
+}
+
+.btn-metal--hybrid::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 10px;
+  pointer-events: none;
+  transition: all 0.15s ease-out;
+  background: rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 2px 2px rgba(255, 255, 255, 0.35) inset,
+    0 -2px 4px rgba(0, 0, 0, 0.4) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.15) inset,
+    0 2px 0 0 rgba(0, 0, 0, 0.25),
+    0 4px 8px rgba(0, 0, 0, 0.25);
+}
+
+.btn-metal--hybrid:active {
+  transform: translateY(1px);
+  transition: all 0.05s ease-in;
+  /* 按下状态：类似第二个按钮的凹陷效果和绿色发光 */
+  color: #6f4bd0;
+  box-shadow:
+    0 1px 2px rgba(255, 255, 255, 0.25) inset,
+    0 -1px 2px rgba(0, 0, 0, 0.7) inset,
+    0 6px 12px rgba(0, 0, 0, 0.4) inset,
+    0 0 0 1px #5a6069,
+    0 0 22px 6px rgba(255, 99, 94, 0.35);
+}
+
+.btn-metal--hybrid:active::before {
+  transition: all 0.05s ease-in;
+  background: linear-gradient(180deg,
+      rgba(0, 0, 0, 0.35),
+      rgba(255, 255, 255, 0.08));
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.5) inset,
+    0 -2px 2px rgba(255, 255, 255, 0.2) inset,
+    0 0 0 1px rgba(0, 0, 0, 0.25) inset;
+}
+
+.btn-metal:active {
+  transform: translateY(1px);
+}
+
+.btn-metal:focus-visible {
+  outline: 2px solid #e47068;
+  outline-offset: 3px;
+}
+
+
+.nav-list {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0px 40rpx 0px;
+  align-items: center;
+  /* justify-content: center; */
+}
+
+.nav-li {
+  padding: 30rpx;
+  border-radius: 12rpx;
+  width: 45%;
+  margin: 0 2.5% 40rpx;
+  /* background-image: url(https://image.weilanwl.com/color2.0/cardBg.png); */
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  z-index: 1;
+}
+
+.nav-li::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  background-color: inherit;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  bottom: -10%;
+  border-radius: 10rpx;
+  opacity: 0.2;
+  transform: scale(0.9, 0.9);
+}
+
+.nav-li.cur {
+  color: #fff;
+  background: rgb(94, 185, 94);
+  box-shadow: 4rpx 4rpx 6rpx rgba(94, 185, 94, 0.4);
+}
+
+.nav-title {
+  font-size: 32rpx;
+  font-weight: 300;
+}
+
+.nav-title::first-letter {
+  font-size: 40rpx;
+  margin-right: 4rpx;
+}
+
+.nav-name {
+  font-size: 28rpx;
+  text-transform: Capitalize;
+  margin-top: 20rpx;
+  position: relative;
+}
+
+.nav-name::before {
+  content: "";
+  position: absolute;
+  display: block;
+  width: 40rpx;
+  height: 6rpx;
+  background: #fff;
+  bottom: 0;
+  right: 0;
+  opacity: 0.5;
+}
+
+.nav-name::after {
+  content: "";
+  position: absolute;
+  display: block;
+  width: 100rpx;
+  height: 1px;
+  background: #fff;
+  bottom: 0;
+  right: 40rpx;
+  opacity: 0.3;
+}
+
+.nav-name::first-letter {
+  font-weight: bold;
+  font-size: 36rpx;
+  margin-right: 1px;
+}
+
+.nav-li text {
+  position: absolute;
+  right: 30rpx;
+  top: 30rpx;
+  font-size: 52rpx;
+  width: 60rpx;
+  height: 60rpx;
+  text-align: center;
+  line-height: 60rpx;
+}
+
+.text-light {
+  font-weight: 300;
+}
+
+
+.text-jjaa {
+  width: 100%;
+  border-radius: 20rpx;
+  border: 2rpx solid #e6e4e4;
+  height: 300rpx;
+  padding: 10rpx 30rpx;
+}
+
+.text-dsfa {
+  /* width: 100%; */
+  height: 70rpx;
+  border: 2rpx solid #e6e4e4;
+  display: flex;
+  align-items: center;
+  border-radius: 10rpx;
+  padding:  0 30rpx;
+  color: gray;
+}
+
+.text-9oag{
+  font-size: 28rpx;
+  line-height: 2.5;
+}
+
+
+
+
+.dialog-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10rpx;
+  gap: 30rpx;
+}
+
+.dialog-btn {
+  padding: 20rpx 30rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 8rpx rgba(0, 0, 0, 0.2);
+  position: relative;
+  top: 0;
+  transition: all 0.1s ease;
+  border: none;
+}
+
+.dialog-btn.small{
+  padding: 10rpx 20rpx;
+  font-size: 24rpx;
+}
+
+.dialog-btn.default{
+  padding: 20rpx 30rpx;
+  font-size: 26rpx;
+}
+
+ 
+
+.dialog-btn.cancel {
+  background: linear-gradient(to bottom, #f8f8f8, #e8e8e8);
+  color: #666;
+}
+
+.dialog-btn.preview {
+  background: linear-gradient(to bottom, #1abc9c, #18a88c);
+  color: white;
+  text-shadow: 0 1rpx 1rpx rgba(0, 0, 0, 0.2);
+}
+
+.dialog-btn.confirm {
+  background: linear-gradient(to bottom, #1abc9c, #18a88c);
+  color: white;
+  text-shadow: 0 1rpx 1rpx rgba(0, 0, 0, 0.2);
+}
+
+.dialog-btn:active {
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.2);
+  top: 2rpx;
+  opacity: 0.9;
+}

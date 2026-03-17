@@ -1,0 +1,64 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+
+  <!-- 设备生产配置 -->
+  <view wx:if="{{elements1 && elements1.length > 0}}" class="section section-has-title">
+    <view class="section-title-hex">设备生产配置</view>
+    <view  class="box-uiyy">
+      <view class='nav-list'>
+        <navigator open-type="navigate" hover-class='none' url="/pages/deviceManager/{{item.name}}/{{item.name}}" class="nav-li bg-{{item.color}}" wx:for="{{elements1}}" wx:key="item">
+          <view class="nav-title">{{item.title}}</view>
+          <view class="nav-name">{{item.name}}</view>
+          <text class='cuIcon-{{item.icon}}'></text>
+        </navigator>
+      </view>
+    </view>
+  </view>
+
+   <!-- 设备调拨配置 -->
+   <view wx:if="{{elements2 && elements2.length > 0}}" class="section section-has-title">
+    <view class="section-title-hex">设备调拨配置</view>
+    <view  class="box-uiyy">
+      <view class='nav-list'>
+        <navigator open-type="navigate" hover-class='none' url="/pages/deviceManager/{{item.name}}/{{item.name}}" class="nav-li bg-{{item.color}}" wx:for="{{elements2}}" wx:key="item">
+          <view class="nav-title">{{item.title}}</view>
+          <view class="nav-name">{{item.name}}</view>
+          <text class='cuIcon-{{item.icon}}'></text>
+        </navigator>
+      </view>
+    </view>
+  </view>
+   <!-- 设备服务价格 -->
+   <view wx:if="{{elements3 && elements3.length > 0}}"  class="section section-has-title">
+    <view class="section-title-hex">设备服务价格</view>
+    <view class="box-uiyy">
+      <view class='nav-list'>
+        <navigator open-type="navigate" hover-class='none' url="/pages/deviceManager/{{item.name}}/{{item.name}}" class="nav-li bg-{{item.color}}" wx:for="{{elements3}}" wx:key="item">
+          <view class="nav-title">{{item.title}}</view>
+          <view class="nav-name">{{item.name}}</view>
+          <text class='cuIcon-{{item.icon}}'></text>
+        </navigator>
+      </view>
+    </view>
+  </view>
+   <!-- 设备服务时间 -->
+   <view wx:if="{{elements4 && elements4.length > 0}}" class="section section-has-title">
+    <view class="section-title-hex">设备服务时间</view>
+    <view  class="box-uiyy">
+      <view class='nav-list'>
+        <navigator open-type="navigate" hover-class='none' url="/pages/deviceManager/{{item.name}}/{{item.name}}" class="nav-li bg-{{item.color}}" wx:for="{{elements4}}" wx:key="item">
+          <view class="nav-title">{{item.title}}</view>
+          <view class="nav-name">{{item.name}}</view>
+          <text class='cuIcon-{{item.icon}}'></text>
+        </navigator>
+      </view>
+    </view>
+  </view>
+</view>
+
+
+<!-- 
+<view wx:else class="box-aabb">
+  <image class="img-231a" src="/images/icon_empty_battery.png"></image>
+  <text class="text-afda">您暂无操作权限</text>
+</view> -->

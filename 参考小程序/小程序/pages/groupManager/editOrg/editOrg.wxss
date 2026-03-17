@@ -1,0 +1,109 @@
+/* pages/groupManager/editOrg/editOrg.wxss */
+
+.text-okaa{
+  font-size: 32rpx;
+  font-weight: bold;
+  padding: 30rpx;
+}
+
+.box_sjfk{
+  margin-top: 30rpx;
+  width: 96%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.text-plza{
+  width: 150rpx;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  /* background-color: lightgray; */
+  height: 70rpx;
+  
+}
+
+.input-pqqq{
+  margin-left: 10rpx;
+  width: 0;
+  flex:1;
+  /* border-radius: 10rpx; */
+  /* border: 1rpx solid #f1f1f1; */
+  padding-left: 30rpx;
+  height: 70rpx;
+  display: flex;
+  align-items: center;
+  /* background-color: #e4e4e4; */
+  border-bottom: 1rpx solid #c0c0c0;
+}
+
+.box_poad{
+  display: flex;
+  width: 96%;
+  flex-direction: column;
+}
+
+.box-adfg{
+  margin-left: 2%;
+}
+
+
+.cb {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 30rpx;
+  padding-left: 10rpx;
+}
+
+
+.txt_wwer {
+ display: inline-block;
+ flex-wrap: wrap;
+ line-height: 1.5;
+ flex-direction: row;
+ font-size: 22rpx;
+ font-family: PingFang SC;
+ color: #74767B;
+ word-wrap: break-word;  /* 英文单词断行 */
+ white-space: normal;    /* 中文自动换行 */
+ overflow-wrap: anywhere; /* 强制允许任意位置断行 */
+width: 100%;
+}
+
+.txt_affd {
+ color: #0778FF;
+ text-decoration: underline;
+ text-decoration-skip-ink: none;
+ line-height: 1.8;
+ word-wrap: break-word;  /* 英文单词断行 */
+ white-space: normal;    /* 中文自动换行 */
+ overflow-wrap: anywhere; /* 强制允许任意位置断行 */
+}
+
+ 
+/* 页面的.wxss 文件，例如 index.wxss */
+.cb-button {
+  z-index: 111;
+  display: flex;
+  font-size: 26rpx;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+  background-color: transparent;
+  /* padding-top: 20rpx; */
+  border: none;
+  box-sizing: border-box;
+}
+
+.cb-button::after {
+  border: none;
+}
+
+.cb-button:active {
+  background-color: transparent;
+}

@@ -1,0 +1,3 @@
+/* pages/userManager/userDetail/userDetail.wxss */
+
+@import "../../groupManager/addOrg/addOrg.wxss";

@@ -1,0 +1,89 @@
+<!--pages/groupManager/addOrg/addOrg.wxml-->
+<view class="container">
+
+  <view class="box_sjfk">
+    <text class="text-plza"> <text class="text-red">*</text> 组织名</text>
+    <input class="input-pqqq" type="text" maxlength="30" bindinput="onInput" data-index="1"  value="{{org_name}}"></input>
+  </view>
+  <view class="box_sjfk">
+    <text class="text-plza">地址</text>
+    <input class="input-pqqq" type="text" maxlength="30" bindinput="onInput" data-index="2" value="{{org_addr}}"></input>
+  </view>
+  <view class="box_sjfk">
+    <text class="text-plza">税号</text>
+    <input class="input-pqqq" type="text" maxlength="30" bindinput="onInput" data-index="3"  value="{{org_tax_id}}"></input>
+  </view>
+  <view class="box_sjfk">
+    <text class="text-plza"><text class="text-red">*</text> 联系人</text>
+    <input class="input-pqqq" type="text" maxlength="30" bindinput="onInput" data-index="4" value="{{contact_person1}}"></input>
+  </view>
+  <view class="box_sjfk">
+    <text class="text-plza"><text class="text-red">*</text> 联系号码</text>
+    <input class="input-pqqq" type="number" maxlength="11" bindinput="onInput" data-index="5" value="{{contact_number1}}"></input>
+  </view>
+
+  <view wx:if="{{parent.org_id != -1}}" class="box_sjfk">
+    <text class="text-plza">上级组织</text>
+    <text class="input-pqqq" >{{parent.org_name}}</text>
+  </view>
+
+  <view wx:if="{{isAddUserPerm}}" class="box_sjfk">
+    <text class="text-plza">创建登录账号</text>
+    <radio-group bindchange="accountChange" style="margin-left: 30rpx;">
+      <label>
+        <radio value="1" style="transform: scale(0.8);" checked="{{accountOption ==1}}" /> 暂不创建
+      </label>
+      <label>
+        <radio style="margin-left: 50rpx;transform: scale(0.8);" value="2" checked="{{accountOption == 2}}" /> 立即创建
+      </label>
+    </radio-group>
+  </view>
+
+  <view wx:if="{{accountOption == 2}}" class="box_poad">
+    <view class="box_sjfk">
+      <text class="text-plza"><text class="text-red">*</text> 登录账号</text>
+      <input class="input-pqqq" type="text" maxlength="30" bindinput="onInput" data-index="6"  value="{{name}}"></input>
+    </view>
+    <view class="box_sjfk">
+      <text class="text-plza"><text class="text-red">*</text> 登录密码</text>
+      <input class="input-pqqq" type="text" maxlength="11" bindinput="onInput" data-index="7" password="true" value="{{password}}"></input>
+    </view>
+    <view class="box_sjfk">
+      <text class="text-plza"><text class="text-red">*</text> 确认密码</text>
+      <input class="input-pqqq" type="text" maxlength="11" bindinput="onInput" data-index="8" password="true"   value="{{repwd}}"></input>
+    </view>
+
+    <view class="box_sjfk">
+    <text class="text-plza">电子邮箱</text>
+    <input class="input-pqqq" type="text" maxlength="36" bindinput="onInput" data-index="21" value="{{email}}"></input>
+  </view>
+  <view class="box_sjfk">
+    <text class="text-plza">手机号码</text>
+    <input class="input-pqqq" type="number" maxlength="11" bindinput="onInput" data-index="22" value="{{mobile}}"></input>
+  </view>
+  <view class="box_sjfk">
+    <text class="text-plza">备注信息</text>
+    <input class="input-pqqq" type="text" maxlength="100" bindinput="onInput" data-index="23" value="{{comment}}"></input>
+  </view>
+  </view>
+
+   <!-- 协议 start -->
+   <view class='cb' style="margin-top: 20rpx;">
+            <button class="cb-button" id="agree-btn" open-type="agreePrivacyAuthorization" bindagreeprivacyauthorization="handleAgree">
+              <image style="width: 42rpx;height: 42rpx;"   src="{{read_protocol?'/images/icon_rb_checkbox_2.png':'/images/icon_rb_checkbox_1.png'}}"></image>
+            </button>
+             <view   class="txt_wwer">已阅读并同意
+              <text class="txt_affd" bindtap="openPrivacyContract">《用户隐私保护协议》</text>
+            </view>
+          </view>
+          <!-- 协议 end -->
+
+  <view class="dialog-buttons" style="margin: 100rpx 0 50rpx 0; ">
+    <view style="width: 10%;"></view>
+    <button class="dialog-btn cancel" catch:tap="onCancel">取消</button>
+    <button class="dialog-btn confirm" catch:tap="onSubmit">确定</button>
+    <view style="width: 10%;"></view>
+  </view>
+
+
+</view>

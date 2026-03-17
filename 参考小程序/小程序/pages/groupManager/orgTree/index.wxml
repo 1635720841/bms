@@ -1,0 +1,19 @@
+<view class="t_container">
+  <!-- 选择结果展示与确认 -->
+  <view class="selection-bar" wx:if="{{selectedNode && isSingleRadio}}">
+    <text class="box_kadd"  >  {{selectedNode.org_name}}</text> 
+    <view class="select-btns">
+      <text bindtap="clearSelection" class="cancel-btn">取消</text>
+      <text bindtap="confirmSelection" class="confirm-btn">确认</text>
+    </view>
+  </view>
+
+
+  <view wx:if="{{!rootOrgData || rootOrgData.length < 1}}" class="box-aabb">
+  <image class="img-231a" src="/images/icon_empty_battery.png"></image>
+  <text class="text-afda">查询结果为空</text>
+ </view>
+ <tree wx:else id="orgTree" org_list="{{rootOrgData}}" expandedNodes="{{debugData.expandedNodes}}" isAdd="{{isAdd}}" isEdit="{{isEdit}}" isSingleRadio="{{isSingleRadio}}" selectedOrg="{{selectedNode}}" bind:toggle="handleToggle" bind:add="handleAdd" bind:edit="handleEdit" bind:refresh="handleRefresh" bind:select="handleSelect" />
+
+  
+</view>

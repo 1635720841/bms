@@ -1,0 +1,33 @@
+<!--pages/userManager/userDetail/userDetail.wxml-->
+<view class="container">
+  
+    <view class="box_sjfk">
+      <text class="text-plza"> 组织名称</text>
+      <text class="input-pqqq" >{{item.org_name}}</text>
+    </view>
+    <view class="box_sjfk">
+      <text class="text-plza"> 登录账号</text>
+      <text class="input-pqqq" >{{item.usr_name}}</text>
+    </view>
+    <view class="box_sjfk">
+      <text class="text-plza"> 电子邮箱</text>
+      <text class="input-pqqq" >{{item.email?item.email:''}}</text>
+    </view>
+    <view class="box_sjfk">
+      <text class="text-plza"> 手机号码</text>
+      <text class="input-pqqq" >{{item.mobile?item.mobile:''}}</text>
+    </view>
+    <view class="box_sjfk">
+      <text class="text-plza"> 备注信息</text>
+      <text class="input-pqqq" >{{item.comment?item.comment:''}}</text>
+    </view>
+
+    <view wx:if="{{updateUserPerm || pwdchgPerm}}"  class="dialog-buttons" style="margin:100rpx 0 50rpx 0; width: 90%;">
+      <button wx:if="{{updateUserPerm}}" class="dialog-btn cancel default" catch:tap="onEditAccount" data-item="{{item}}">修改信息</button>
+        <button wx:if="{{pwdchgPerm}}" class="dialog-btn confirm default" catch:tap="onResetPwd" data-item="{{item}}">重置密码</button>
+        <button  wx:if="{{pwdchgPerm}}"  class="dialog-btn confirm default" catch:tap="onModifyPwd" data-item="{{item}}">修改密码</button>
+      
+    </view>
+  
+
+</view>

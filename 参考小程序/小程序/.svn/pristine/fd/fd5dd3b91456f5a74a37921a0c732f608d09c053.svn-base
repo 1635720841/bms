@@ -1,0 +1,39 @@
+<!--pages/userManager/modifyPwd/modifyPwd.wxml-->
+
+<!--pages/userManager/resetPwd/resetPwd.wxml-->
+<view class="container">
+  <!-- <view class="box_sjfk">
+    <text class="text-plza"> <text class="text-red">*</text> 组织名</text>
+    <text class="input-pqqq" style="border: none;">{{org_name}}</text>
+  </view> -->
+
+  <view class="box_sjfk">
+    <text class="text-plza"><text class="text-red">*</text> 登录账号</text>
+    <text class="input-pqqq" >{{name}}</text>
+  </view>
+
+  
+  <view class="box_sjfk">
+      <text class="text-plza"><text class="text-red">*</text> 旧密码</text>
+      <input class="input-pqqq" type="text" maxlength="11" bindinput="onInput" data-index="7" password="true" value="{{password}}"></input>
+    </view>
+    <view class="box_sjfk">
+      <text class="text-plza"><text class="text-red">*</text> 新密码</text>
+      <input class="input-pqqq" type="text" maxlength="11" bindinput="onInput" data-index="9" password="true" value="{{new_password}}"></input>
+    </view>
+    <view class="box_sjfk">
+      <text class="text-plza"><text class="text-red">*</text> 新密码</text>
+      <input class="input-pqqq" type="text" maxlength="11" bindinput="onInput" data-index="10" password="true" value="{{new_repwd}}"></input>
+    </view>
+ 
+
+  <view class="dialog-buttons" style="margin:50rpx 0; width: 96%;">
+    <view style="width: 5%;"></view>
+    <button class="dialog-btn cancel" catch:tap="onCancel">取消</button>
+    <button class="dialog-btn confirm" catch:tap="onSubmit">确定</button>
+    <view style="width: 5%;"></view>
+  </view>
+
+
+</view>
+ 

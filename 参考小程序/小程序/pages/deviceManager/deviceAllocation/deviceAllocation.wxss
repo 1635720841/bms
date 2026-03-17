@@ -1,0 +1,3 @@
+/* pages/deviceManager/deviceAllocation/deviceAllocation.wxss */
+
+@import "../deviceEntry/deviceEntry.wxss";

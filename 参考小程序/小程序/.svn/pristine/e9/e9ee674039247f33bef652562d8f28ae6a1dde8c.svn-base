@@ -1,0 +1,183 @@
+@import "../../colorui/icon.wxss";
+
+.tree-node {
+  padding-left: 10rpx;
+}
+
+.tree-node::before {
+  content: "";
+  display: block;
+  border-left: 1px dashed #e0e0e0;
+  height: 50%;
+}
+
+.tree-node.top-level {
+  border-left: none;
+}
+
+.node-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  /* border-bottom: 1px solid #f5f5f5; */
+}
+
+
+
+.expand-indicator {
+  /* margin-right: 6px; */
+  color: #666;
+  font-size: 20px;
+  width: 20px;
+  text-align: center;
+}
+
+.node-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.refresh-btn {
+  padding: 2px 6px;
+  background-color: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #666;
+  min-width: 28px;
+  height: 28px;
+  line-height: 28px;
+}
+
+.add-btn,
+.edit-btn,
+.select-btn-normal,
+.select-btn-active {
+  width: 70rpx;
+  height: 40rpx;
+  /* background-color: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px; */
+  font-size: 40rpx;
+
+}
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f9d58;
+  /* border-color: #cfeee0;
+  background-color: #f3fff7; */
+}
+
+.select-btn-normal{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: gray;
+}
+
+.select-btn-active{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f9d58;
+}
+
+.edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0b74ff;
+  /* border-color: #dbeeff;
+  background-color: #f3f8ff; */
+}
+
+.children {
+  margin-left: 12rpx;
+  position: relative;
+}
+
+
+
+.debug-info {
+  font-size: 10px;
+  color: #999;
+  margin-left: 10px;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 60%;
+  /* gap: 8px; */
+  /* min-width: 0; */
+  /* allow ellipsis on child */
+}
+
+.name-wrap {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  /* for text-overflow */
+  gap: 6px;
+  line-height: 1.8;
+}
+
+.name {
+  font-size: 14px;
+  color: #222;
+  /* single line with ellipsis */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.loading {
+  font-size: 12px;
+  color: #999;
+  margin-left: 6px;
+}
+
+.icon-trans {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+  font-size: 16px;
+  color: #999;
+  -webkit-animation: spin 1s linear infinite;
+  animation: spin 1s linear infinite;
+}
+
+@-webkit-keyframes spin {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+
+  to {
+    -webkit-transform: rotate(360deg);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* .cuIcon-refresh {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
+} */

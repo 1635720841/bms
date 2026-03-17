@@ -1,0 +1,6 @@
+<!--pages/locOnMap/locOnMap.wxml-->
+<view class="container">
+  <!-- 地图map  start -->
+  <map id="map" class='map_container' markers="{{allMarkers}}" longitude="{{longitude}}" latitude="{{latitude}}" scale="14" show-location="true"></map>
+  <!-- 地图map  end -->
+</view>

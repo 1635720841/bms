@@ -1,0 +1,16 @@
+<!--pages/index/index.wxml-->
+
+<view wx:if="{{elements && elements.length > 0}}" class="box-uiyy">
+  <view class='nav-list'>
+    <navigator open-type="navigate" hover-class='none' url="/pages/userManager/{{item.name}}/{{item.name}}" class="nav-li bg-{{item.color}}" wx:for="{{elements}}" wx:key="item">
+      <view class="nav-title">{{item.title}}</view>
+      <view class="nav-name">{{item.name}}</view>
+      <text class='cuIcon-{{item.icon}}'></text>
+    </navigator>
+  </view>
+</view>
+
+<view wx:else class="box-aabb">
+  <image class="img-231a" src="/images/icon_empty_battery.png"></image>
+  <text class="text-afda">您暂无操作权限</text>
+ </view>

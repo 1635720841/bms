@@ -1,0 +1,128 @@
+---
+alwaysApply: true
+---
+# BMS 项目开发规范
+
+> 本项目基于 pure-admin-thin，BMS 管理系统。UI 参考 `.cursor/rules/bms-ui-design.mdc`
+
+## 1. 项目封装组件（强制使用）
+
+### 1.1 表格 pageTable
+```vue
+<pageTable :page="page" :data="list" :columns="columns" :loading="loading" @GetData="handleGetData" />
+```
+- `page` 结构：`{ currentPage, pageSize, total }`，分页变化时触发 `@GetData`
+- `columns` 中状态列用 `selectData` 映射字典，自动渲染 `el-tag`：
+
+```typescript
+const columns = reactive([
+  { label: '状态', prop: 'online', selectData: online_status_dict },
+  { label: '材料', prop: 'cellMat', selectData: cell_mat_dict },
+])
+```
+
+### 1.2 弹窗 ReDialog
+- 使用 `addDialog` 打开，`closeDialog` 关闭（非 v-model）
+- `ReDialog` 已在 `App.vue` 全局注册
+
+```typescript
+import { addDialog, closeDialog } from '@/components/ReDialog'
+
+addDialog({
+  title: '标题',
+  contentRenderer: () => h(YourComponent, { onSuccess: () => closeDialog(...) }),
+  footerButtons: [{ label: '确定', type: 'primary', btnClick: () => {} }]
+})
+```
+
+### 1.3 搜索表单 TableSearch
+```vue
+<TableSearch :form-item="searchItems" @queryBtn="handleSearch" @resetBtn="handleReset" />
+```
+- `formItem` 配置：`{ label, field, type, selectOption?, isAdvanced?, width? }`
+- `type`：`input` | `select` | `date`，`select` 时需 `selectOption`
+- 注意：部分 type（company、operateCity 等）依赖业务组件，BMS 优先用 `input`、`select`
+
+### 1.4 通用组件
+- 表单/表格以 Element Plus 为主
+- 单行展示：`<el-input-number v-model="row.freeDay" :min="0" :max="9999" controls-position="right"/>`
+
+## 2. API 集中管理
+
+### 2.1 类型定义（与 API 同文件或 `types.ts`）
+```typescript
+// src/api/bms/types.ts
+export interface BmsListParams {
+  page: number
+  pageSize: number
+  filters?: BmsListFilters
+}
+export interface BmsDeviceItem { ... }
+```
+
+### 2.2 API 封装
+```typescript
+// src/api/bms/index.ts
+export function getBmsListReq(params: BmsListParams): Promise<BmsListRes> {
+  return bmsHttp.post('/bms/api/get/bmslist', params)
+}
+```
+
+## 3. 词典管理
+
+- 统一放在 `src/utils/dict.ts`
+- **同一业务字典不重复定义**
+- 使用 `getDictLabel`、`getDictItem` 解构
+
+```typescript
+// ✅ 正确
+export const online_status_dict = [
+  { value: 1, label: '在线', type: 'success' },
+  { value: 0, label: '离线', type: 'info' }
+]
+// 使用
+getDictLabel(online_status_dict, row.online)
+getDictItem(online_status_dict, row.online)?.type
+
+// ❌ 错误：分散定义
+const STATUS_OPTIONS = [...]
+const STATUS_TEXT = { 0: '离线' }
+```
+
+## 4. 数据结构格式
+
+```typescript
+// ✅ 正确：对象单行
+const formItem = [{ field: 'a', type: 'input' }, { field: 'b', type: 'select' }]
+
+// ❌ 错误：对象换行造成噪音
+```
+
+## 5. 项目约定
+
+- 路径别名：`@/` → `src/`
+- 组件：`defineOptions({ name: 'XxxName' })`
+- 状态管理：`useXxxStoreHook()`
+- 样式穿透：`:deep(.class-name)`
+
+## 6. SVG 图标
+
+- 几何配置统一在 `src/assets/svg/staticIcons.ts`
+- 组件内只写最小 `<svg>` + 业务样式（颜色、状态）
+- 新增图标优先用配置，避免重复硬编码
+
+## 7. BMS 深色主题（参考）
+
+- 主背景：`#0a0e17`
+- 卡片背景：`#1c2128`
+- 主文字：`#e6edf3`
+- 主色：`#58a6ff`
+- 表格变量见 `views/deviceList` 中 `--el-table-*`
+
+## 禁止事项
+
+- ❌ Options API（必须用 Composition API）
+- ❌ 组件内直接写 API 请求（抽到 api 层）
+- ❌ 使用 `any` 类型
+- ❌ 重复代码（提取 hooks/工具函数）
+- ❌ 硬编码状态值（必须用词典）

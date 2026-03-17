@@ -1,0 +1,52 @@
+<!--pages/deviceManager/deviceAllocation/deviceAllocation.wxml-->
+ 
+
+<view class="container">
+
+  <view style="width: 96%;padding: 30rpx;display: flex;flex-direction: column;">
+    <text class="text-9oag"> <text class="cuIcon-titles" style="color:var(--cyan);"></text>要调拨到 <text class="text-red">(必填)</text>
+    </text>
+    <view class="box_ksaq" catch:tap="onSelectGroup"><text>{{selectedOrg.org_name?selectedOrg.org_name:'请选择调拨的组织单位'}} </text> <text wx:if="{{selectedOrg.org_name}}" class="cuIcon-close" style="padding: 0 10rpx;font-size: 32rpx;" catch:tap="clearOrg"></text></view>
+  </view>
+ 
+<view style="width: 96%;display: flex;flex-direction: column;padding: 30rpx;">
+    <view style="display: flex;align-items: center;justify-content: space-between;">
+      <text class="text-9oag"> <text class="cuIcon-titles" style="color:var(--cyan);"></text>设备编码 (逗号、换行分割)</text>
+      <text wx:if="{{!!validDevList}}">{{validDevList.length}}</text>
+      <text class="iconfont icon-iconfontscan" style="font-size:48rpx;color: var(--mainThemeText);padding: 20rpx 30rpx;" catch:tap="onScanCode"></text>
+    </view>
+
+
+    <view class="box_kddf">
+      <textarea class="text-jfaf" value="{{devString}}" maxlength="-1"  bindinput="onInputDev" />
+         <text wx:if="{{devString}}" class="cuIcon-close" style="padding: 10rpx 30rpx; font-size: 32rpx;" catch:tap="clearInputDevs"></text>
+        <text class="text-ad32" catch:tap="onPreview">识别</text>
+     </view>
+  </view>
+
+  <view wx:if="{{isPreview}}" style="width: 96%;display: flex;flex-direction: column;padding: 30rpx;">
+    <view style="display: flex;align-items: center;justify-content: space-between;">
+      <text class="text-9oag"> <text class="cuIcon-titles" style="color:var(--cyan);"></text>清单预览</text>
+      <text wx:if="{{!!validDevList}}">{{validDevList.length}}</text>
+    </view>
+
+
+    <view class="box_kddf" style="padding: 10rpx;">
+      <scroll-view style="width: 100%;height: 100%;" scroll-y="{{true}}">
+        <block wx:for="{{validDevList}}" wx:key="item">
+          <view class="box_kska">
+            <text>{{item}}</text>
+          </view>
+        </block>
+      </scroll-view>
+    </view>
+  </view>
+
+ 
+<view class="dialog-buttons" style="margin:30rpx; width: 90%;">
+    <!-- <button class="dialog-btn cancel default" catch:tap="onPreview">清单预览</button> -->
+
+     <button class="dialog-btn confirm default" catchtap="onConfirmAllocate" >设备调拨</button>
+
+  </view>
+</view>
