@@ -1,3 +1,51 @@
+<template>
+  <div class="cell-uv-tab">
+    <ParamFormRow
+      :fields="[
+        {
+          label: '触发门限(mV)',
+          modelValue: form.cell_UVT,
+          options: uvtOptions,
+          loading: props.loadingRanges,
+          fieldKey: 'cell_UVT',
+          span: 14
+        },
+        {
+          label: '延时(S)',
+          modelValue: form.cell_UVD,
+          options: uvdOptions,
+          loading: props.loadingRanges,
+          fieldKey: 'cell_UVD',
+          span: 10
+        }
+      ]"
+      @update:field="handleUpdate"
+    />
+    <ParamFormRow
+      :fields="[
+        {
+          label: '恢复门限(mV)',
+          modelValue: form.cell_UVRT,
+          options: uvrtOptions,
+          loading: props.loadingRanges,
+          fieldKey: 'cell_UVRT',
+          span: 14
+        },
+        {
+          label: '延时(S)',
+          modelValue: form.cell_UVRD,
+          options: uvrdOptions,
+          loading: props.loadingRanges,
+          fieldKey: 'cell_UVRD',
+          span: 10
+        }
+      ]"
+      @update:field="handleUpdate"
+    />
+    <div class="hint">触发门限需小于恢复门限</div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { computed, reactive, watch } from "vue";
 import type { BmsRangesMap } from "@/api/bms/types";
@@ -99,53 +147,6 @@ defineExpose({
 });
 </script>
 
-<template>
-  <div class="cell-uv-tab">
-    <ParamFormRow
-      :fields="[
-        {
-          label: '触发门限(mV)',
-          modelValue: form.cell_UVT,
-          options: uvtOptions,
-          loading: props.loadingRanges,
-          fieldKey: 'cell_UVT',
-          span: 14
-        },
-        {
-          label: '延时(S)',
-          modelValue: form.cell_UVD,
-          options: uvdOptions,
-          loading: props.loadingRanges,
-          fieldKey: 'cell_UVD',
-          span: 10
-        }
-      ]"
-      @update:field="handleUpdate"
-    />
-    <ParamFormRow
-      :fields="[
-        {
-          label: '恢复门限(mV)',
-          modelValue: form.cell_UVRT,
-          options: uvrtOptions,
-          loading: props.loadingRanges,
-          fieldKey: 'cell_UVRT',
-          span: 14
-        },
-        {
-          label: '延时(S)',
-          modelValue: form.cell_UVRD,
-          options: uvrdOptions,
-          loading: props.loadingRanges,
-          fieldKey: 'cell_UVRD',
-          span: 10
-        }
-      ]"
-      @update:field="handleUpdate"
-    />
-    <div class="hint">触发门限需小于恢复门限</div>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .cell-uv-tab {

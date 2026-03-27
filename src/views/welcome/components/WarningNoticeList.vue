@@ -1,3 +1,56 @@
+<template>
+  <div class="warning-notice-card">
+    <div class="card-header">
+      <div class="title-wrapper">
+        <div class="title-icon" />
+        <h3 class="card-title">预警通知</h3>
+        <!-- <span class="count-badge">{{ totalWarningDeviceCount }}台</span> -->
+      </div>
+
+      <div class="header-right">
+        <!-- <div v-if="lastUpdateText" class="update-time">
+          <svg class="time-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10" stroke-width="2" />
+            <path d="M12 6v6l4 2" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <span>{{ lastUpdateText }}</span>
+        </div> -->
+
+        <el-button link class="more-btn" :disabled="loading" @click="goWarningList">更多</el-button>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <!-- <div v-if="loading" class="state-text">加载中...</div> -->
+      <div v-if="warningRows.length === 0" class="state-text">暂无预警</div>
+
+      <div v-else class="notice-list">
+        <div v-for="row in warningRows" :key="row.bmsId + String(row._timeMs)" class="notice-item">
+          <div class="item-main">
+            <el-button link class="bms-link" @click="goBmsMonitor(row)">
+              {{ row.bmsId }}
+            </el-button>
+            <span class="item-time">{{ formatRowTime(row) }}</span>
+          </div>
+
+          <div class="item-tags">
+            <span
+              v-for="k in row._activeKeys.slice(0, 6)"
+              :key="k"
+              class="tag"
+              :title="labelMap.get(k) ?? k"
+            >
+              {{ labelMap.get(k) ?? k }}
+            </span>
+            <span v-if="row._activeKeys.length > 6" class="tag tag-more">+{{ row._activeKeys.length - 6 }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-glow" />
+  </div>
+</template>
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
@@ -84,23 +137,10 @@ async function loadWarningNotice() {
   if (loading.value) return;
   loading.value = true;
 
-  const pageSize = 200;
-  const maxFetch = 1000;
-  const acc: BmsWarningListItem[] = [];
-  let page = 1;
-  let total = Number.POSITIVE_INFINITY;
-
-  while (acc.length < total && acc.length < maxFetch) {
-    const res = await getWarningBmsListReq({ page, pageSize });
-    if (res.errno !== 0) break;
-    const chunk = res.data?.bmsList ?? [];
-    if (typeof res.data?.total === "number") total = res.data.total;
-    acc.push(...chunk);
-    if (chunk.length < pageSize) break;
-    page += 1;
-  }
-
-  list.value = acc;
+  // 大屏“预警通知”只展示最新一部分即可，避免进入页面时分页拉全量导致接口被连续调用多次
+  const pageSize = 30;
+  const res = await getWarningBmsListReq({ page: 1, pageSize });
+  list.value = res.errno === 0 ? (res.data?.bmsList ?? []) : [];
   lastUpdateText.value = dateYMDHMS(Date.now());
   loading.value = false;
 }
@@ -118,67 +158,17 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<template>
-  <div class="warning-notice-card">
-    <div class="card-header">
-      <div class="title-wrapper">
-        <div class="title-icon" />
-        <h3 class="card-title">预警通知</h3>
-        <span class="count-badge">{{ totalWarningDeviceCount }}台</span>
-      </div>
-
-      <div class="header-right">
-        <div v-if="lastUpdateText" class="update-time">
-          <svg class="time-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="12" cy="12" r="10" stroke-width="2" />
-            <path d="M12 6v6l4 2" stroke-width="2" stroke-linecap="round" />
-          </svg>
-          <span>{{ lastUpdateText }}</span>
-        </div>
-
-        <el-button link class="more-btn" :disabled="loading" @click="goWarningList">更多</el-button>
-      </div>
-    </div>
-
-    <div class="card-body">
-      <div v-if="loading" class="state-text">加载中...</div>
-      <div v-else-if="warningRows.length === 0" class="state-text">暂无预警</div>
-
-      <div v-else class="notice-list">
-        <div v-for="row in warningRows" :key="row.bmsId + String(row._timeMs)" class="notice-item">
-          <div class="item-main">
-            <el-button link class="bms-link" @click="goBmsMonitor(row)">
-              {{ row.bmsId }}
-            </el-button>
-            <span class="item-time">{{ formatRowTime(row) }}</span>
-          </div>
-
-          <div class="item-tags">
-            <span
-              v-for="k in row._activeKeys.slice(0, 6)"
-              :key="k"
-              class="tag"
-              :title="labelMap.get(k) ?? k"
-            >
-              {{ labelMap.get(k) ?? k }}
-            </span>
-            <span v-if="row._activeKeys.length > 6" class="tag tag-more">+{{ row._activeKeys.length - 6 }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card-glow" />
-  </div>
-</template>
-
 <style scoped lang="scss">
 .warning-notice-card {
+  --card-padding: clamp(12px, 1.1vw, 18px);
+  --text-sm: clamp(12px, 0.85vw, 13px);
+  --text-md: clamp(14px, 1vw, 16px);
+  --list-max-h: clamp(200px, 32vh, 360px);
   position: relative;
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
   border: 1px solid rgba(88, 166, 255, 0.3);
   border-radius: 20px;
-  padding: 18px;
+  padding: var(--card-padding);
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -240,7 +230,7 @@ onBeforeUnmount(() => {
 
 .card-title {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 600;
   color: #e6edf3;
   letter-spacing: 0.5px;
@@ -248,7 +238,7 @@ onBeforeUnmount(() => {
 }
 
 .count-badge {
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 999px;
@@ -271,7 +261,7 @@ onBeforeUnmount(() => {
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid rgba(88, 166, 255, 0.2);
   border-radius: 10px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: rgba(230, 237, 243, 0.7);
   white-space: nowrap;
 }
@@ -283,32 +273,34 @@ onBeforeUnmount(() => {
 }
 
 .more-btn {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: rgba(230, 237, 243, 0.85);
 }
 
 .card-body {
   position: relative;
-  min-height: 160px;
+  min-height: 250px;
 }
 
 .state-text {
-  padding: 18px 8px;
-  font-size: 13px;
+  padding: clamp(12px, 1.1vw, 18px) 8px;
+  font-size: var(--text-sm);
   color: rgba(230, 237, 243, 0.65);
+ text-align: center;
+
 }
 
 .notice-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-height: 340px;
+  gap: clamp(8px, 0.8vw, 10px);
+  height: var(--list-max-h);
   overflow: auto;
   padding-right: 6px;
 }
 
 .notice-item {
-  padding: 12px 12px 10px;
+  padding: clamp(10px, 1vw, 12px) clamp(10px, 1vw, 12px) clamp(8px, 0.9vw, 10px);
   background: rgba(10, 14, 23, 0.55);
   border: 1px solid rgba(88, 166, 255, 0.16);
   border-radius: 14px;
@@ -330,12 +322,12 @@ onBeforeUnmount(() => {
 
 .bms-link {
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: #00d9ff;
 }
 
 .item-time {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: rgba(230, 237, 243, 0.6);
   white-space: nowrap;
 }
@@ -347,7 +339,7 @@ onBeforeUnmount(() => {
 }
 
 .tag {
-  font-size: 12px;
+  font-size: var(--text-sm);
   padding: 2px 8px;
   border-radius: 999px;
   background: rgba(255, 149, 0, 0.12);

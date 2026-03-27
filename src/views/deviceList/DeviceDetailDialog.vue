@@ -1,236 +1,3 @@
-<script setup lang="ts">
-import { ref, watch, nextTick, onBeforeUnmount, computed } from "vue";
-import { useRouter } from "vue-router";
-import { ElMessage } from "element-plus";
-import {
-  getBasicInfoReq,
-  getBatDataReq,
-  processBasicInfo,
-  processRunInfo
-} from "@/api/bms";
-import {
-  cell_mat_dict,
-  getDictLabel,
-  protect_bit_config,
-  status_bit_config,
-  switch_fun_ctrl_bit_config
-} from "@/utils/dict";
-import type { BmsBasicInfo, BmsRunInfo } from "@/api/bms/types";
-import echarts from "@/plugins/echarts";
-import { useFunCtrl, type FunCtrlFunc } from "./useFunCtrl";
-import { useBmsAuth } from "@/composables/useBmsAuth";
-import { Loading } from "@element-plus/icons-vue";
-
-defineOptions({ name: "DeviceDetailDialog" });
-
-const props = withDefaults(
-  defineProps<{
-    modelValue: boolean;
-    bmsId?: string;
-  }>(),
-  { bmsId: "" }
-);
-
-const emit = defineEmits<{
-  "update:modelValue": [value: boolean];
-}>();
-
-const router = useRouter();
-const loading = ref(false);
-const activeTab = ref("info"); // 默认选中基础档案
-const baseInfo = ref<BmsBasicInfo | null>(null);
-const runInfo = ref<BmsRunInfo | null>(null);
-
-// 功能控制
-const { cmdLoading, refreshing, sendFunCtrl } = useFunCtrl({
-  onAfterSend: (id: string) => {
-    loadDetail(id);
-  }
-});
-
-// 权限管理
-const { bmsOp, bmsCfg } = useBmsAuth();
-
-// Refs for charts
-const gaugeSocRef = ref<HTMLElement | null>(null);
-const gaugeSohRef = ref<HTMLElement | null>(null);
-const gaugeVoltRef = ref<HTMLElement | null>(null);
-const gaugeCurrentRef = ref<HTMLElement | null>(null);
-const cellVoltsChartRef = ref<HTMLElement | null>(null);
-
-let chartSoc: ReturnType<typeof echarts.init> | null = null;
-let chartSoh: ReturnType<typeof echarts.init> | null = null;
-let chartVolt: ReturnType<typeof echarts.init> | null = null;
-let chartCurrent: ReturnType<typeof echarts.init> | null = null;
-let chartCellVolts: ReturnType<typeof echarts.init> | null = null;
-
-const themeColor = "#00bcd4";
-const successColor = "#00e676";
-const warningColor = "#ffb300";
-const dangerColor = "#ff5252";
-
-const isCharging = computed(() => {
-  const current = parseFloat(runInfo.value?.currentD ?? "0");
-  return current > 0.5;
-});
-
-const currentSocColor = computed(() => {
-  const soc = runInfo.value?.soc ?? 0;
-  if (soc > 50) return successColor;
-  if (soc > 20) return warningColor;
-  return dangerColor;
-});
-
-function formatDateTime(ts: Date) {
-  return (
-    ts.getFullYear() + "-" +
-    String(ts.getMonth() + 1).padStart(2, "0") + "-" +
-    String(ts.getDate()).padStart(2, "0") + " " +
-    String(ts.getHours()).padStart(2, "0") + ":" +
-    String(ts.getMinutes()).padStart(2, "0") + ":" +
-    String(ts.getSeconds()).padStart(2, "0")
-  );
-}
-
-// 仪表盘初始化
-function initGauge(el: HTMLElement | null, value: number, title: string, unit: string, max: number, color: string) {
-  if (!el) return;
-  const chart = echarts.init(el);
-  const safeValue = Math.min(max, Math.max(0, value));
-  chart.setOption({
-    series: [{
-      type: "gauge",
-      startAngle: 180, endAngle: 0, min: 0, max,
-      splitNumber: 1, radius: "100%", center: ["50%", "75%"],
-      itemStyle: { color: color, shadowColor: color, shadowBlur: 10 },
-      progress: { show: true, width: 8, roundCap: true },
-      axisLine: { roundCap: true, lineStyle: { width: 8, color: [[1, "rgba(255,255,255,0.1)"]] } },
-      pointer: { show: false }, axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false },
-      title: { show: true, offsetCenter: [0, "20%"], fontSize: 13, color: "rgba(255,255,255,0.7)" },
-      detail: {
-        valueAnimation: true, offsetCenter: [0, "-25%"], fontSize: 22, fontWeight: 'bold',
-        formatter: (val: number) => val.toFixed(unit === ' A' || unit === ' V' ? 1 : 0),
-        color: "#fff"
-      },
-      data: [{ value: safeValue, name: title }]
-    }]
-  });
-  return chart;
-}
-
-function updateGauges() {
-  const r = runInfo.value;
-  if (!r) return;
-  if (gaugeSocRef.value) {
-    chartSoc?.dispose();
-    chartSoc = initGauge(gaugeSocRef.value, r.soc ?? 0, "SOC", "%", 100, currentSocColor.value);
-  }
-  if (gaugeSohRef.value) {
-    chartSoh?.dispose();
-    chartSoh = initGauge(gaugeSohRef.value, r.soh ?? 0, "SOH", "%", 100, themeColor);
-  }
-  const volt = parseFloat(r.batVoltD ?? "0") || 0;
-  if (gaugeVoltRef.value) {
-    chartVolt?.dispose();
-    chartVolt = initGauge(gaugeVoltRef.value, volt, "总压", " V", Math.max(60, volt * 1.2), themeColor);
-  }
-  const cur = parseFloat(r.currentD ?? "0") || 0;
-  const absCur = Math.abs(cur);
-  if (gaugeCurrentRef.value) {
-    chartCurrent?.dispose();
-    chartCurrent = initGauge(
-      gaugeCurrentRef.value, absCur, "电流", " A", Math.max(50, absCur * 1.5), cur >= 0 ? successColor : warningColor
-    );
-  }
-}
-
-function initCellVoltsChart() {
-  const el = cellVoltsChartRef.value;
-  const r = runInfo.value;
-  if (!el || !r?.cell_volts?.length) return;
-  chartCellVolts?.dispose();
-  chartCellVolts = echarts.init(el);
-  const vols = r.cell_volts;
-  const minIdx = r.minCellIndex ?? -1;
-  const maxIdx = r.maxCellIndex ?? -1;
-  const data = vols.map((v, i) => {
-    let color = new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: themeColor }, { offset: 1, color: "rgba(0, 188, 212, 0.1)" }]);
-    if (i === minIdx) color = new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: dangerColor }, { offset: 1, color: "rgba(244, 67, 54, 0.1)" }]);
-    if (i === maxIdx) color = new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: warningColor }, { offset: 1, color: "rgba(255, 179, 0, 0.1)" }]);
-    return { value: v, itemStyle: { color, borderRadius: [3, 3, 0, 0] } };
-  });
-
-  chartCellVolts.setOption({
-    grid: { left: 10, right: 10, top: 20, bottom: 20, containLabel: true },
-    tooltip: { trigger: "axis", backgroundColor: "rgba(20, 20, 20, 0.9)", borderColor: "#333", textStyle: { color: "#fff" }, formatter: "{b}: {c} mV" },
-    xAxis: { type: "category", data: vols.map((_, i) => `${i + 1}`), axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: "#999", fontSize: 11 } },
-    yAxis: { type: "value", scale: true, splitLine: { lineStyle: { color: "rgba(255,255,255,0.08)" } }, axisLabel: { color: "#999", fontSize: 11 } },
-    series: [{ type: "bar", data, barWidth: "60%", barMaxWidth: 24 }]
-  });
-}
-
-async function loadDetail(bmsId: string) {
-  loading.value = true;
-  baseInfo.value = null; runInfo.value = null;
-  try {
-    const [basicRes, batRes] = await Promise.all([getBasicInfoReq(bmsId), getBatDataReq(bmsId)]);
-    if (basicRes.errno === 0 && basicRes.data?.basicInfo) {
-      baseInfo.value = processBasicInfo(basicRes.data.basicInfo);
-      if (baseInfo.value?.updateTime) baseInfo.value.timeF = formatDateTime(new Date(baseInfo.value.updateTime));
-    }
-    if (batRes.errno === 0 && batRes.data?.batData) {
-      runInfo.value = processRunInfo(batRes.data.batData);
-      if (runInfo.value?.time) runInfo.value.timeF = formatDateTime(new Date(runInfo.value.time * 1000));
-    }
-  } catch { ElMessage.error("获取详情失败"); } finally {
-    loading.value = false; await nextTick(); updateGauges(); initCellVoltsChart();
-  }
-}
-
-watch(() => [props.modelValue, props.bmsId] as const, ([visible, bmsId]) => {
-  if (visible && bmsId) {
-    activeTab.value = 'info'; // 每次打开重置为基础档案
-    loadDetail(bmsId);
-  }
-}, { immediate: true });
-
-onBeforeUnmount(() => {
-  chartSoc?.dispose(); chartSoh?.dispose(); chartVolt?.dispose(); chartCurrent?.dispose(); chartCellVolts?.dispose();
-});
-
-function cellMatLabel(val: number | undefined) { return val != null ? getDictLabel(cell_mat_dict, val) : "--"; }
-function tempBarPercent(t: number | undefined, max = 80) { if (t == null) return 0; return Math.min(100, Math.max(0, (t / max) * 100)); }
-
-function protectBit(bit: number) {
-  const val = runInfo.value?.protect ?? 0; const active = !!(val & bit);
-  return { text: active ? "是" : "否", isActive: active };
-}
-function statusBit(cfg: any) {
-  const val = runInfo.value?.status ?? 0; const set = !!(val & cfg.bit); const isGood = cfg.onIsGood ? set : !set;
-  return { text: set ? cfg.onText : cfg.offText, isGood };
-}
-function switchBit(cfg: any) {
-  const val = runInfo.value?.switch_fun_ctrl ?? 0; const isOn = !!(val & cfg.bit);
-  return { text: isOn ? cfg.onText : cfg.offText, isOn };
-}
-function handleFunCtrl(func: FunCtrlFunc, op: 0 | 1) {
-  const bmsId = String(props.bmsId ?? "").trim();
-  if (!bmsId) {
-    ElMessage.warning("缺少设备编码");
-    return;
-  }
-  sendFunCtrl(bmsId, func, op);
-}
-function handleSetParams() {
-  const bmsId = String(props.bmsId ?? "").trim();
-  if (!bmsId) {
-    ElMessage.warning("缺少设备编码");
-    return;
-  }
-  router.push({ name: "DeviceParamConfig", query: { bmsId } });
-}
-</script>
-
 <template>
   <el-dialog
     :model-value="modelValue"
@@ -558,6 +325,239 @@ function handleSetParams() {
     </div>
   </el-dialog>
 </template>
+
+<script setup lang="ts">
+import { ref, watch, nextTick, onBeforeUnmount, computed } from "vue";
+import { useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
+import {
+  getBasicInfoReq,
+  getBatDataReq,
+  processBasicInfo,
+  processRunInfo
+} from "@/api/bms";
+import {
+  cell_mat_dict,
+  getDictLabel,
+  protect_bit_config,
+  status_bit_config,
+  switch_fun_ctrl_bit_config
+} from "@/utils/dict";
+import type { BmsBasicInfo, BmsRunInfo } from "@/api/bms/types";
+import echarts from "@/plugins/echarts";
+import { useFunCtrl, type FunCtrlFunc } from "./useFunCtrl";
+import { useBmsAuth } from "@/composables/useBmsAuth";
+import { Loading } from "@element-plus/icons-vue";
+
+defineOptions({ name: "DeviceDetailDialog" });
+
+const props = withDefaults(
+  defineProps<{
+    modelValue: boolean;
+    bmsId?: string;
+  }>(),
+  { bmsId: "" }
+);
+
+const emit = defineEmits<{
+  "update:modelValue": [value: boolean];
+}>();
+
+const router = useRouter();
+const loading = ref(false);
+const activeTab = ref("info"); // 默认选中基础档案
+const baseInfo = ref<BmsBasicInfo | null>(null);
+const runInfo = ref<BmsRunInfo | null>(null);
+
+// 功能控制
+const { cmdLoading, refreshing, sendFunCtrl } = useFunCtrl({
+  onAfterSend: (id: string) => {
+    loadDetail(id);
+  }
+});
+
+// 权限管理
+const { bmsOp, bmsCfg } = useBmsAuth();
+
+// Refs for charts
+const gaugeSocRef = ref<HTMLElement | null>(null);
+const gaugeSohRef = ref<HTMLElement | null>(null);
+const gaugeVoltRef = ref<HTMLElement | null>(null);
+const gaugeCurrentRef = ref<HTMLElement | null>(null);
+const cellVoltsChartRef = ref<HTMLElement | null>(null);
+
+let chartSoc: ReturnType<typeof echarts.init> | null = null;
+let chartSoh: ReturnType<typeof echarts.init> | null = null;
+let chartVolt: ReturnType<typeof echarts.init> | null = null;
+let chartCurrent: ReturnType<typeof echarts.init> | null = null;
+let chartCellVolts: ReturnType<typeof echarts.init> | null = null;
+
+const themeColor = "#00bcd4";
+const successColor = "#00e676";
+const warningColor = "#ffb300";
+const dangerColor = "#ff5252";
+
+const isCharging = computed(() => {
+  const current = parseFloat(runInfo.value?.currentD ?? "0");
+  return current > 0.5;
+});
+
+const currentSocColor = computed(() => {
+  const soc = runInfo.value?.soc ?? 0;
+  if (soc > 50) return successColor;
+  if (soc > 20) return warningColor;
+  return dangerColor;
+});
+
+function formatDateTime(ts: Date) {
+  return (
+    ts.getFullYear() + "-" +
+    String(ts.getMonth() + 1).padStart(2, "0") + "-" +
+    String(ts.getDate()).padStart(2, "0") + " " +
+    String(ts.getHours()).padStart(2, "0") + ":" +
+    String(ts.getMinutes()).padStart(2, "0") + ":" +
+    String(ts.getSeconds()).padStart(2, "0")
+  );
+}
+
+// 仪表盘初始化
+function initGauge(el: HTMLElement | null, value: number, title: string, unit: string, max: number, color: string) {
+  if (!el) return;
+  const chart = echarts.init(el);
+  const safeValue = Math.min(max, Math.max(0, value));
+  chart.setOption({
+    series: [{
+      type: "gauge",
+      startAngle: 180, endAngle: 0, min: 0, max,
+      splitNumber: 1, radius: "100%", center: ["50%", "75%"],
+      itemStyle: { color: color, shadowColor: color, shadowBlur: 10 },
+      progress: { show: true, width: 8, roundCap: true },
+      axisLine: { roundCap: true, lineStyle: { width: 8, color: [[1, "rgba(255,255,255,0.1)"]] } },
+      pointer: { show: false }, axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false },
+      title: { show: true, offsetCenter: [0, "20%"], fontSize: 13, color: "rgba(255,255,255,0.7)" },
+      detail: {
+        valueAnimation: true, offsetCenter: [0, "-25%"], fontSize: 22, fontWeight: 'bold',
+        formatter: (val: number) => val.toFixed(unit === ' A' || unit === ' V' ? 1 : 0),
+        color: "#fff"
+      },
+      data: [{ value: safeValue, name: title }]
+    }]
+  });
+  return chart;
+}
+
+function updateGauges() {
+  const r = runInfo.value;
+  if (!r) return;
+  if (gaugeSocRef.value) {
+    chartSoc?.dispose();
+    chartSoc = initGauge(gaugeSocRef.value, r.soc ?? 0, "SOC", "%", 100, currentSocColor.value);
+  }
+  if (gaugeSohRef.value) {
+    chartSoh?.dispose();
+    chartSoh = initGauge(gaugeSohRef.value, r.soh ?? 0, "SOH", "%", 100, themeColor);
+  }
+  const volt = parseFloat(r.batVoltD ?? "0") || 0;
+  if (gaugeVoltRef.value) {
+    chartVolt?.dispose();
+    chartVolt = initGauge(gaugeVoltRef.value, volt, "总压", " V", Math.max(60, volt * 1.2), themeColor);
+  }
+  const cur = parseFloat(r.currentD ?? "0") || 0;
+  const absCur = Math.abs(cur);
+  if (gaugeCurrentRef.value) {
+    chartCurrent?.dispose();
+    chartCurrent = initGauge(
+      gaugeCurrentRef.value, absCur, "电流", " A", Math.max(50, absCur * 1.5), cur >= 0 ? successColor : warningColor
+    );
+  }
+}
+
+function initCellVoltsChart() {
+  const el = cellVoltsChartRef.value;
+  const r = runInfo.value;
+  if (!el || !r?.cell_volts?.length) return;
+  chartCellVolts?.dispose();
+  chartCellVolts = echarts.init(el);
+  const vols = r.cell_volts;
+  const minIdx = r.minCellIndex ?? -1;
+  const maxIdx = r.maxCellIndex ?? -1;
+  const data = vols.map((v, i) => {
+    let color = new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: themeColor }, { offset: 1, color: "rgba(0, 188, 212, 0.1)" }]);
+    if (i === minIdx) color = new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: dangerColor }, { offset: 1, color: "rgba(244, 67, 54, 0.1)" }]);
+    if (i === maxIdx) color = new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: warningColor }, { offset: 1, color: "rgba(255, 179, 0, 0.1)" }]);
+    return { value: v, itemStyle: { color, borderRadius: [3, 3, 0, 0] } };
+  });
+
+  chartCellVolts.setOption({
+    grid: { left: 10, right: 10, top: 20, bottom: 20, containLabel: true },
+    tooltip: { trigger: "axis", backgroundColor: "rgba(20, 20, 20, 0.9)", borderColor: "#333", textStyle: { color: "#fff" }, formatter: "{b}: {c} mV" },
+    xAxis: { type: "category", data: vols.map((_, i) => `${i + 1}`), axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: "#999", fontSize: 11 } },
+    yAxis: { type: "value", scale: true, splitLine: { lineStyle: { color: "rgba(255,255,255,0.08)" } }, axisLabel: { color: "#999", fontSize: 11 } },
+    series: [{ type: "bar", data, barWidth: "60%", barMaxWidth: 24 }]
+  });
+}
+
+async function loadDetail(bmsId: string) {
+  loading.value = true;
+  baseInfo.value = null; runInfo.value = null;
+  try {
+    const [basicRes, batRes] = await Promise.all([getBasicInfoReq(bmsId), getBatDataReq(bmsId)]);
+    if (basicRes.errno === 0 && basicRes.data?.basicInfo) {
+      baseInfo.value = processBasicInfo(basicRes.data.basicInfo);
+      if (baseInfo.value?.updateTime) baseInfo.value.timeF = formatDateTime(new Date(baseInfo.value.updateTime));
+    }
+    if (batRes.errno === 0 && batRes.data?.batData) {
+      runInfo.value = processRunInfo(batRes.data.batData);
+      if (runInfo.value?.time) runInfo.value.timeF = formatDateTime(new Date(runInfo.value.time * 1000));
+    }
+  } catch { ElMessage.error("获取详情失败"); } finally {
+    loading.value = false; await nextTick(); updateGauges(); initCellVoltsChart();
+  }
+}
+
+watch(() => [props.modelValue, props.bmsId] as const, ([visible, bmsId]) => {
+  if (visible && bmsId) {
+    activeTab.value = 'info'; // 每次打开重置为基础档案
+    loadDetail(bmsId);
+  }
+}, { immediate: true });
+
+onBeforeUnmount(() => {
+  chartSoc?.dispose(); chartSoh?.dispose(); chartVolt?.dispose(); chartCurrent?.dispose(); chartCellVolts?.dispose();
+});
+
+function cellMatLabel(val: number | undefined) { return val != null ? getDictLabel(cell_mat_dict, val) : "--"; }
+function tempBarPercent(t: number | undefined, max = 80) { if (t == null) return 0; return Math.min(100, Math.max(0, (t / max) * 100)); }
+
+function protectBit(bit: number) {
+  const val = runInfo.value?.protect ?? 0; const active = !!(val & bit);
+  return { text: active ? "是" : "否", isActive: active };
+}
+function statusBit(cfg: any) {
+  const val = runInfo.value?.status ?? 0; const set = !!(val & cfg.bit); const isGood = cfg.onIsGood ? set : !set;
+  return { text: set ? cfg.onText : cfg.offText, isGood };
+}
+function switchBit(cfg: any) {
+  const val = runInfo.value?.switch_fun_ctrl ?? 0; const isOn = !!(val & cfg.bit);
+  return { text: isOn ? cfg.onText : cfg.offText, isOn };
+}
+function handleFunCtrl(func: FunCtrlFunc, op: 0 | 1) {
+  const bmsId = String(props.bmsId ?? "").trim();
+  if (!bmsId) {
+    ElMessage.warning("缺少设备编码");
+    return;
+  }
+  sendFunCtrl(bmsId, func, op);
+}
+function handleSetParams() {
+  const bmsId = String(props.bmsId ?? "").trim();
+  if (!bmsId) {
+    ElMessage.warning("缺少设备编码");
+    return;
+  }
+  router.push({ name: "DeviceParamConfig", query: { bmsId } });
+}
+</script>
 
 <style lang="scss">
 /* 弹窗容器 - 配色与详情页一致 */

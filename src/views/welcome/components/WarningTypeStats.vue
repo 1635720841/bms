@@ -1,3 +1,54 @@
+<template>
+  <div class="warning-stats-wrapper">
+    <div class="warning-stats-card">
+      <div class="card-header">
+        <div class="header-left">
+          <div class="title-wrapper">
+            <div class="title-icon" />
+            <h3 class="card-title">电压电流类统计</h3>
+          </div>
+        </div>
+        <div v-if="updateTime" class="update-time">
+          <svg class="time-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10" stroke-width="2" />
+            <path d="M12 6v6l4 2" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <span>{{ updateTime }}</span>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div ref="chartRef1" class="chart-container" />
+      </div>
+
+      <div class="card-glow" />
+    </div>
+
+    <div class="warning-stats-card">
+      <div class="card-header">
+        <div class="header-left">
+          <div class="title-wrapper">
+            <div class="title-icon" />
+            <h3 class="card-title">温度故障类统计</h3>
+          </div>
+        </div>
+        <div v-if="updateTime" class="update-time">
+          <svg class="time-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10" stroke-width="2" />
+            <path d="M12 6v6l4 2" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <span>{{ updateTime }}</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div ref="chartRef2" class="chart-container" />
+      </div>
+
+      <div class="card-glow" />
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from "vue";
 import type { EChartsOption } from "echarts";
@@ -32,6 +83,7 @@ const chartRef2 = ref<HTMLDivElement | null>(null);
 type EChartsInstance = ReturnType<typeof echarts.init>;
 let chartInstance1: EChartsInstance | null = null;
 let chartInstance2: EChartsInstance | null = null;
+let rafResizeId = 0;
 
 interface WarningPieItem {
   name: string;
@@ -225,8 +277,11 @@ function initChart(index: number) {
 }
 
 function resizeChart() {
-  chartInstance1?.resize();
-  chartInstance2?.resize();
+  if (rafResizeId) cancelAnimationFrame(rafResizeId);
+  rafResizeId = requestAnimationFrame(() => {
+    chartInstance1?.resize();
+    chartInstance2?.resize();
+  });
 }
 
 onMounted(async () => {
@@ -255,6 +310,8 @@ watch(
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", resizeChart);
+  if (rafResizeId) cancelAnimationFrame(rafResizeId);
+  rafResizeId = 0;
   if (chartInstance1) {
     chartInstance1.dispose();
     chartInstance1 = null;
@@ -265,57 +322,6 @@ onBeforeUnmount(() => {
   }
 });
 </script>
-
-<template>
-  <div class="warning-stats-wrapper">
-    <div class="warning-stats-card">
-      <div class="card-header">
-        <div class="header-left">
-          <div class="title-wrapper">
-            <div class="title-icon" />
-            <h3 class="card-title">电压电流类统计</h3>
-          </div>
-        </div>
-        <div v-if="updateTime" class="update-time">
-          <svg class="time-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="12" cy="12" r="10" stroke-width="2" />
-            <path d="M12 6v6l4 2" stroke-width="2" stroke-linecap="round" />
-          </svg>
-          <span>{{ updateTime }}</span>
-        </div>
-      </div>
-
-      <div class="card-body">
-        <div ref="chartRef1" class="chart-container" />
-      </div>
-
-      <div class="card-glow" />
-    </div>
-
-    <div class="warning-stats-card">
-      <div class="card-header">
-        <div class="header-left">
-          <div class="title-wrapper">
-            <div class="title-icon" />
-            <h3 class="card-title">温度故障类统计</h3>
-          </div>
-        </div>
-        <div v-if="updateTime" class="update-time">
-          <svg class="time-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="12" cy="12" r="10" stroke-width="2" />
-            <path d="M12 6v6l4 2" stroke-width="2" stroke-linecap="round" />
-          </svg>
-          <span>{{ updateTime }}</span>
-        </div>
-      </div>
-      <div class="card-body">
-        <div ref="chartRef2" class="chart-container" />
-      </div>
-
-      <div class="card-glow" />
-    </div>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .warning-stats-wrapper {

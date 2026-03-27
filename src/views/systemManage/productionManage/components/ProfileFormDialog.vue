@@ -1,3 +1,27 @@
+<template>
+  <div class="profile-form-dialog">
+    <el-form ref="formRef" :model="formData" :rules="rules" label-width="100px">
+      <el-form-item label="配置名称" prop="name">
+        <el-input v-model="formData.name" placeholder="请输入配置名称" clearable />
+      </el-form-item>
+      <el-form-item label="软件版本" prop="softwareVer">
+        <el-input v-model="formData.softwareVer" placeholder="请输入软件版本" clearable />
+      </el-form-item>
+      <el-form-item label="4G信号" prop="RSSI">
+        <el-input-number v-model="formData.RSSI" :min="50" :max="90" :controls="false" style="width: 100%" placeholder="请输入4G信号" />
+      </el-form-item>
+      <el-form-item label="GPS星数" prop="GPS">
+        <el-input-number v-model="formData.GPS" :min="0"  :controls="false" style="width: 100%" placeholder="请输入GPS星数" />
+      </el-form-item>
+      <el-form-item label="主平台">
+        <el-input v-model="formData.server" placeholder="请输入主平台地址" clearable />
+      </el-form-item>
+      <el-form-item label="三方平台">
+        <el-input v-model="formData['3rdServer']" placeholder="请输入三方平台地址" clearable />
+      </el-form-item>
+    </el-form>
+  </div>
+</template>
 <script setup lang="ts">
 import { ref, reactive } from "vue";
 import { ElMessage } from "element-plus";
@@ -79,30 +103,6 @@ defineExpose({
 });
 </script>
 
-<template>
-  <div class="profile-form-dialog">
-    <el-form ref="formRef" :model="formData" :rules="rules" label-width="100px">
-      <el-form-item label="配置名称" prop="name">
-        <el-input v-model="formData.name" placeholder="请输入配置名称" clearable />
-      </el-form-item>
-      <el-form-item label="软件版本" prop="softwareVer">
-        <el-input v-model="formData.softwareVer" placeholder="请输入软件版本" clearable />
-      </el-form-item>
-      <el-form-item label="4G信号" prop="RSSI">
-        <el-input-number v-model="formData.RSSI" :min="50" :max="90" :controls="false" style="width: 100%" placeholder="请输入4G信号" />
-      </el-form-item>
-      <el-form-item label="GPS星数" prop="GPS">
-        <el-input-number v-model="formData.GPS" :min="0"  :controls="false" style="width: 100%" placeholder="请输入GPS星数" />
-      </el-form-item>
-      <el-form-item label="主平台">
-        <el-input v-model="formData.server" placeholder="请输入主平台地址" clearable />
-      </el-form-item>
-      <el-form-item label="三方平台">
-        <el-input v-model="formData['3rdServer']" placeholder="请输入三方平台地址" clearable />
-      </el-form-item>
-    </el-form>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .profile-form-dialog {

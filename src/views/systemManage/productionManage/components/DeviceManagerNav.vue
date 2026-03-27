@@ -1,3 +1,27 @@
+<template>
+  <div v-if="props.items?.length" class="pm-section">
+    <div class="pm-section__title">设备生产配置</div>
+    <div class="pm-nav-list">
+      <button
+        v-for="item in props.items"
+        :key="item.name"
+        type="button"
+        class="pm-nav-item"
+        :class="[getColorClass(item), { 'is-disabled': item.disabled }]"
+        @click="handleClick(item)"
+      >
+        <div class="pm-nav-item__text">
+          <div class="pm-nav-item__title">{{ item.title }}</div>
+          <div class="pm-nav-item__name">{{ item.name }}</div>
+        </div>
+        <svg class="pm-nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 defineOptions({
   name: "DeviceManagerNav"
@@ -37,30 +61,6 @@ function getColorClass(item: DeviceManagerNavItem) {
   return item.color ? `pm-nav-item--${item.color}` : "pm-nav-item--cyan";
 }
 </script>
-
-<template>
-  <div v-if="props.items?.length" class="pm-section">
-    <div class="pm-section__title">设备生产配置</div>
-    <div class="pm-nav-list">
-      <button
-        v-for="item in props.items"
-        :key="item.name"
-        type="button"
-        class="pm-nav-item"
-        :class="[getColorClass(item), { 'is-disabled': item.disabled }]"
-        @click="handleClick(item)"
-      >
-        <div class="pm-nav-item__text">
-          <div class="pm-nav-item__title">{{ item.title }}</div>
-          <div class="pm-nav-item__name">{{ item.name }}</div>
-        </div>
-        <svg class="pm-nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </button>
-    </div>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .pm-section {

@@ -1,3 +1,51 @@
+
+<template>
+  <div class="bat-ov-tab">
+    <ParamFormRow
+      :fields="[
+        {
+          label: '触发门限(V)',
+          modelValue: form.bat_OVT,
+          options: ovtOptions,
+          loading: props.loadingRanges,
+          fieldKey: 'bat_OVT',
+          span: 14
+        },
+        {
+          label: '延时(S)',
+          modelValue: form.bat_OVD,
+          options: ovdOptions,
+          loading: props.loadingRanges,
+          fieldKey: 'bat_OVD',
+          span: 10
+        }
+      ]"
+      @update:field="handleUpdate"
+    />
+    <ParamFormRow
+      :fields="[
+        {
+          label: '恢复门限(V)',
+          modelValue: form.bat_OVRT,
+          options: ovrtOptions,
+          loading: props.loadingRanges,
+          fieldKey: 'bat_OVRT',
+          span: 14
+        },
+        {
+          label: '延时(S)',
+          modelValue: form.bat_OVRD,
+          options: ovrdOptions,
+          loading: props.loadingRanges,
+          fieldKey: 'bat_OVRD',
+          span: 10
+        }
+      ]"
+      @update:field="handleUpdate"
+    />
+    <div class="hint">触发门限需大于恢复门限</div>
+  </div>
+</template>
 <script setup lang="ts">
 import { computed, reactive, watch } from "vue";
 import type { BmsRangesMap } from "@/api/bms/types";
@@ -105,54 +153,6 @@ function getPayload() {
 
 defineExpose({ form, validate, getPayload });
 </script>
-
-<template>
-  <div class="bat-ov-tab">
-    <ParamFormRow
-      :fields="[
-        {
-          label: '触发门限(V)',
-          modelValue: form.bat_OVT,
-          options: ovtOptions,
-          loading: props.loadingRanges,
-          fieldKey: 'bat_OVT',
-          span: 14
-        },
-        {
-          label: '延时(S)',
-          modelValue: form.bat_OVD,
-          options: ovdOptions,
-          loading: props.loadingRanges,
-          fieldKey: 'bat_OVD',
-          span: 10
-        }
-      ]"
-      @update:field="handleUpdate"
-    />
-    <ParamFormRow
-      :fields="[
-        {
-          label: '恢复门限(V)',
-          modelValue: form.bat_OVRT,
-          options: ovrtOptions,
-          loading: props.loadingRanges,
-          fieldKey: 'bat_OVRT',
-          span: 14
-        },
-        {
-          label: '延时(S)',
-          modelValue: form.bat_OVRD,
-          options: ovrdOptions,
-          loading: props.loadingRanges,
-          fieldKey: 'bat_OVRD',
-          span: 10
-        }
-      ]"
-      @update:field="handleUpdate"
-    />
-    <div class="hint">触发门限需大于恢复门限</div>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .bat-ov-tab {

@@ -1,3 +1,42 @@
+<template>
+  <div class="bat-ocd-tab">
+    <ParamFormRow
+      :fields="[
+        {
+          label: '触发门限(A)',
+          modelValue: form.T,
+          options: tOptions,
+          loading: props.loadingRanges,
+          fieldKey: 'T',
+          span: 14
+        },
+        {
+          label: '延时(S)',
+          modelValue: form.D,
+          options: dOptions,
+          loading: props.loadingRanges,
+          fieldKey: 'D',
+          span: 10
+        }
+      ]"
+      @update:field="handleUpdate"
+    />
+    <ParamFormRow
+      :fields="[
+        {
+          label: '恢复延时(S)',
+          modelValue: form.RD,
+          options: rdOptions,
+          loading: false,
+          fieldKey: 'RD',
+          span: 14
+        }
+      ]"
+      @update:field="handleUpdate"
+    />
+  </div>
+</template>
+
 <script setup lang="ts">
 import { computed, reactive, watch } from "vue";
 import type { BmsRangesMap } from "@/api/bms/types";
@@ -114,45 +153,6 @@ function getPayload() {
 
 defineExpose({ form, validate, getPayload });
 </script>
-
-<template>
-  <div class="bat-ocd-tab">
-    <ParamFormRow
-      :fields="[
-        {
-          label: '触发门限(A)',
-          modelValue: form.T,
-          options: tOptions,
-          loading: props.loadingRanges,
-          fieldKey: 'T',
-          span: 14
-        },
-        {
-          label: '延时(S)',
-          modelValue: form.D,
-          options: dOptions,
-          loading: props.loadingRanges,
-          fieldKey: 'D',
-          span: 10
-        }
-      ]"
-      @update:field="handleUpdate"
-    />
-    <ParamFormRow
-      :fields="[
-        {
-          label: '恢复延时(S)',
-          modelValue: form.RD,
-          options: rdOptions,
-          loading: false,
-          fieldKey: 'RD',
-          span: 14
-        }
-      ]"
-      @update:field="handleUpdate"
-    />
-  </div>
-</template>
 
 <style scoped lang="scss">
 .bat-ocd-tab {

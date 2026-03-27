@@ -66,7 +66,6 @@ const emit = defineEmits<{
 const mapChartInstance = shallowRef<EChartsInstance | null>(null);
 const cachedGeoJson = shallowRef<MapGeoJSON | null>(null);
 const isMapRegistered = shallowRef(false);
-let rafResizeId = 0;
 
 function renderDeviceMap(list: DeviceRegionItem[]) {
   const chart = mapChartInstance.value;
@@ -152,9 +151,6 @@ function buildDeviceMapOption(
       };
     })
     .filter((item): item is { name: string; value: [number, number, number] } => item !== null);
-
-  // 数据量较大时，自动进入“高性能模式”：降低动画复杂度，缓解卡顿
-  const enableFlyAnimation = scatterData.length <= 20;
 
   const shenzhenCoord: [number, number] = [114.0579, 22.5431];
   // 获取前6个最多的设备数量省份,画线连接到深圳
@@ -265,7 +261,6 @@ function buildDeviceMapOption(
 
   const option: EChartsOption = {
     backgroundColor: "transparent",
-    animation: enableFlyAnimation,
     tooltip: {
       trigger: "item",
       backgroundColor: "rgba(4, 18, 40, 0.85)", // 玻璃拟物感
@@ -299,7 +294,6 @@ function buildDeviceMapOption(
       show: true,
       left: 30,
       bottom: 30,
-      // seriesIndex: 0,
       // text: ["HIGH", "LOW"],
       textStyle: { color: neonCyan, fontFamily: "monospace", fontSize: 10 },
       itemWidth: 12,
@@ -372,14 +366,11 @@ function buildDeviceMapOption(
         type: "lines",
         coordinateSystem: "geo",
         geoIndex: 0,
-        silent: true,
-        tooltip: { show: false },
         z: layerCount + 5,
         effect: {
-          show: enableFlyAnimation,
-          // 数据量大时放慢速度并缩短拖尾，减少重绘压力
-          period: enableFlyAnimation ? 4 : 6,
-          trailLength: enableFlyAnimation ? 0.45 : 0.25,
+          show: true,
+          period: 4,
+          trailLength: 0.6, // 拖尾拉长
           color: neonCyan,
           symbol: "arrow", // 箭头更具方向感
           symbolSize: 5
@@ -387,7 +378,7 @@ function buildDeviceMapOption(
         lineStyle: {
           color: neonBlue,
           width: 1.5,
-          opacity: 0.5,
+          opacity: 0.4,
           curveness: 0.3
         },
         data: flyLines
@@ -398,15 +389,9 @@ function buildDeviceMapOption(
         type: "effectScatter",
         coordinateSystem: "geo",
         geoIndex: 0,
-        silent: true,
-        tooltip: { show: false },
         z: layerCount + 6,
-        symbolSize: enableFlyAnimation ? 12 : 10,
-        rippleEffect: {
-          scale: enableFlyAnimation ? 6 : 4,
-          brushType: "fill",
-          period: enableFlyAnimation ? 5 : 7
-        },
+        symbolSize: 12,
+        rippleEffect: { scale: 6, brushType: "fill" },
         itemStyle: {
           color: neonGold, // 对比色
           shadowBlur: 20,
@@ -420,15 +405,9 @@ function buildDeviceMapOption(
         type: "effectScatter",
         coordinateSystem: "geo",
         geoIndex: 0,
-        silent: true,
-        tooltip: { show: false },
         data: scatterData,
-        symbolSize: enableFlyAnimation ? 6 : 5,
-        rippleEffect: {
-          scale: enableFlyAnimation ? 4 : 3,
-          brushType: "stroke",
-          period: enableFlyAnimation ? 4 : 6
-        },
+        symbolSize: 6,
+        rippleEffect: { scale: 4, brushType: "stroke" },
         itemStyle: {
           color: neonCyan,
           shadowBlur: 10,
@@ -444,15 +423,13 @@ function buildDeviceMapOption(
 }
 
 const handleResize = () => {
-  if (rafResizeId) cancelAnimationFrame(rafResizeId);
-  rafResizeId = requestAnimationFrame(() => {
-    if (!mapChartInstance.value) return;
+  if (mapChartInstance.value) {
     try {
       mapChartInstance.value.resize();
     } catch (error) {
       console.warn("地图 resize 失败", error);
     }
-  });
+  }
 };
 
 async function initDeviceMap() {
@@ -581,13 +558,11 @@ watch(
   list => {
     renderDeviceMap(list ?? []);
   },
-  { deep: false }
+  { deep: true }
 );
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", handleResize);
-  if (rafResizeId) cancelAnimationFrame(rafResizeId);
-  rafResizeId = 0;
   if (mapChartInstance.value) {
     mapChartInstance.value.dispose();
     mapChartInstance.value = null;

@@ -1,3 +1,48 @@
+<template>
+  <div class="bms-change-pwd">
+    <el-form
+      ref="formRef"
+      :model="form"
+      :rules="rules"
+      label-width="90px"
+      label-position="right"
+      :disabled="loading"
+    >
+      <el-form-item label="登录账号">
+        <span class="bms-change-pwd__account">
+          {{ userStore.username || "当前登录账号" }}
+        </span>
+      </el-form-item>
+      <el-form-item prop="password_old" label="原密码">
+        <el-input
+          v-model="form.password_old"
+          type="password"
+          show-password
+          autocomplete="off"
+          placeholder="请输入原登录密码"
+        />
+      </el-form-item>
+      <el-form-item prop="password_new" label="新密码">
+        <el-input
+          v-model="form.password_new"
+          type="password"
+          show-password
+          autocomplete="off"
+          placeholder="请输入新登录密码，至少6位"
+        />
+      </el-form-item>
+      <el-form-item prop="password_confirm" label="确认密码">
+        <el-input
+          v-model="form.password_confirm"
+          type="password"
+          show-password
+          autocomplete="off"
+          placeholder="请再次输入新登录密码"
+        />
+      </el-form-item>
+    </el-form>
+  </div>
+</template>
 <script setup lang="ts">
 import { ref } from "vue";
 import { ElMessage } from "element-plus";
@@ -91,52 +136,6 @@ defineExpose({
   submit
 });
 </script>
-
-<template>
-  <div class="bms-change-pwd">
-    <el-form
-      ref="formRef"
-      :model="form"
-      :rules="rules"
-      label-width="90px"
-      label-position="right"
-      :disabled="loading"
-    >
-      <el-form-item label="登录账号">
-        <span class="bms-change-pwd__account">
-          {{ userStore.username || "当前登录账号" }}
-        </span>
-      </el-form-item>
-      <el-form-item prop="password_old" label="原密码">
-        <el-input
-          v-model="form.password_old"
-          type="password"
-          show-password
-          autocomplete="off"
-          placeholder="请输入原登录密码"
-        />
-      </el-form-item>
-      <el-form-item prop="password_new" label="新密码">
-        <el-input
-          v-model="form.password_new"
-          type="password"
-          show-password
-          autocomplete="off"
-          placeholder="请输入新登录密码，至少6位"
-        />
-      </el-form-item>
-      <el-form-item prop="password_confirm" label="确认密码">
-        <el-input
-          v-model="form.password_confirm"
-          type="password"
-          show-password
-          autocomplete="off"
-          placeholder="请再次输入新登录密码"
-        />
-      </el-form-item>
-    </el-form>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .bms-change-pwd {

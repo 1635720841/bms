@@ -2,11 +2,7 @@
  * BMS API
  */
 import { sha256Hex } from "@/utils/crypto";
-import {
-  setBmsSession,
-  removeBmsSession,
-  type BmsSessionData
-} from "@/utils/bmsAuth";
+import { setBmsSession, removeBmsSession, type BmsSessionData } from "@/utils/bmsAuth";
 import { bmsHttp } from "./http";
 import type {
   BmsLoginRes,
@@ -66,6 +62,8 @@ import type {
   BmsUpdateFacProfileReq,
   BmsUpdateFacProfileRes,
   BmsGetStockRes,
+  BmsBocDiscBmsListParams,
+  BmsBocDiscBmsListRes,
   BmsGetAllstaticsRes
 } from "./types";
 
@@ -74,8 +72,7 @@ export const BMS_APP_ID = "0000000000000000";
 export const BMS_APP_KEY = "0000000000000000";
 
 function generateRandomString(length: number): string {
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let result = "";
   for (let i = 0; i < length; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -86,14 +83,9 @@ function generateRandomString(length: number): string {
 /**
  * BMS 登录
  */
-export async function bmsLoginReq(
-  account: string,
-  password: string
-): Promise<BmsLoginRes> {
+export async function bmsLoginReq(account: string, password: string): Promise<BmsLoginRes> {
   const randStr = generateRandomString(32);
-  const digestStr = await sha256Hex(
-    BMS_APP_ID + BMS_APP_KEY + account + password + randStr
-  );
+  const digestStr = await sha256Hex(BMS_APP_ID + BMS_APP_KEY + account + password + randStr);
 
   const params = {
     name: account,
@@ -110,10 +102,7 @@ export async function bmsLoginReq(
 /**
  * 处理 BMS 登录成功，存储会话并返回适配的 token 数据
  */
-export function handleBmsLoginSuccess(
-  res: BmsLoginRes,
-  account: string
-): BmsSessionData {
+export function handleBmsLoginSuccess(res: BmsLoginRes, account: string): BmsSessionData {
   const data = res.data!;
   const sessionData: BmsSessionData = {
     session: data["3rdsession"],
@@ -136,19 +125,23 @@ export function bmsLogout(): void {
 /**
  * 获取设备列表
  */
-export function getBmsListReq(
-  params: Omit<BmsListParams, "3rdsession">
-): Promise<BmsListRes> {
+export function getBmsListReq(params: Omit<BmsListParams, "3rdsession">): Promise<BmsListRes> {
   return bmsHttp.post("/bms/api/get/bmslist", params) as Promise<BmsListRes>;
 }
 
 /**
  * 获取告警列表
  */
-export function getWarningBmsListReq(
-  params: Omit<BmsWarningListParams, "3rdsession">
-): Promise<BmsWarningListRes> {
+export function getWarningBmsListReq(params: Omit<BmsWarningListParams, "3rdsession">): Promise<BmsWarningListRes> {
   return bmsHttp.post("/bms/api/get/warningbmslist", params) as Promise<BmsWarningListRes>;
+}
+
+/**
+ * 放电过流设备列表
+ * /bms/api/get/bocdiscbmslist
+ */
+export function getBocDiscBmsListReq(payload: BmsBocDiscBmsListParams): Promise<BmsBocDiscBmsListRes> {
+  return bmsHttp.post("/bms/api/get/bocdiscbmslist", payload) as Promise<BmsBocDiscBmsListRes>;
 }
 
 /**
@@ -207,7 +200,7 @@ export function getBmsParamsReq(bmsId: string): Promise<BmsGetParamsRes> {
 
 /**
  * 获取参数范围（小程序：/bms/api/get/paramsrange，可选 cell_mat 1-铁锂 2-三元）
- */862317043748180
+ */ 862317043748180;
 export function getParamsRangeReq(params?: { cell_mat?: 1 | 2 }): Promise<BmsGetParamsRangeRes> {
   return bmsHttp.post("/bms/api/get/paramsrange", params ?? {}) as Promise<BmsGetParamsRangeRes>;
 }
@@ -215,11 +208,7 @@ export function getParamsRangeReq(params?: { cell_mat?: 1 | 2 }): Promise<BmsGet
 /**
  * 写入/更新参数配置（小程序统一协议：{ bms_id, params: {...} }）
  */
-export function setBmsParamsReq(
-  apiPath: string,
-  bmsId: string,
-  params: Record<string, unknown>
-): Promise<BmsSetParamsRes> {
+export function setBmsParamsReq(apiPath: string, bmsId: string, params: Record<string, unknown>): Promise<BmsSetParamsRes> {
   return bmsHttp.post(apiPath, {
     bms_id: bmsId,
     params
@@ -330,9 +319,7 @@ export function setFacConfigReq(payload: BmsFacConfigReq): Promise<BmsFacConfigR
  * 设置服务价格
  * 小程序：/bms/api/mng/price/set
  */
-export function setServicePriceReq(
-  payload: BmsSetServicePriceReq
-): Promise<BmsSetServicePriceRes> {
+export function setServicePriceReq(payload: BmsSetServicePriceReq): Promise<BmsSetServicePriceRes> {
   return bmsHttp.post("/bms/api/mng/price/set", payload) as Promise<BmsSetServicePriceRes>;
 }
 
@@ -340,9 +327,7 @@ export function setServicePriceReq(
  * 设置服务时间
  * 小程序：/bms/api/mng/srvtime/set
  */
-export function setServiceTimeReq(
-  payload: BmsSetServiceTimeReq
-): Promise<BmsSetServiceTimeRes> {
+export function setServiceTimeReq(payload: BmsSetServiceTimeReq): Promise<BmsSetServiceTimeRes> {
   return bmsHttp.post("/bms/api/mng/srvtime/set", payload) as Promise<BmsSetServiceTimeRes>;
 }
 
@@ -433,9 +418,7 @@ export function setBatchFunCtrlReq(payload: BmsBatchFunCtrlReq): Promise<BmsSetP
 /**
  * 修改当前登录账号密码（对应小程序：/bms/api/mng/usr/pwd_change）
  */
-export function changePasswordReq(
-  payload: BmsChangePasswordReq
-): Promise<BmsChangePasswordRes> {
+export function changePasswordReq(payload: BmsChangePasswordReq): Promise<BmsChangePasswordRes> {
   return bmsHttp.post("/bms/api/mng/usr/pwd_change", payload) as Promise<BmsChangePasswordRes>;
 }
 
@@ -539,10 +522,7 @@ export function getOrgListReq(params: BmsGetOrgListParams): Promise<BmsGetOrgLis
 /**
  * 获取组织详情（用于编辑组织时回显）
  */
-export function getOrgDetailReq(params: {
-  org_id: number | string;
-  name?: string;
-}): Promise<BmsGetOrgDetailRes> {
+export function getOrgDetailReq(params: { org_id: number | string; name?: string }): Promise<BmsGetOrgDetailRes> {
   return bmsHttp.post("/bms/api/mng/org/get", params) as Promise<BmsGetOrgDetailRes>;
 }
 
@@ -619,16 +599,18 @@ export function processOrgRoot(data: BmsGetOrgRootRes["data"]): BmsOrgNode[] {
   }
 
   // 单个对象（必须是 BmsOrgNode 类型，排除 admin 特殊格式）
-  if ('org_name' in data) {
-    return [{
-      org_id: typeof data.org_id === 'number' || typeof data.org_id === 'string' ? data.org_id : -1,
-      org_name: data.org_name,
-      parent_org_id: data.parent_org_id,
-      root: data.root,
-      children: data.children,
-      isLeaf: data.isLeaf ?? false,
-      _loading: false
-    }];
+  if ("org_name" in data) {
+    return [
+      {
+        org_id: typeof data.org_id === "number" || typeof data.org_id === "string" ? data.org_id : -1,
+        org_name: data.org_name,
+        parent_org_id: data.parent_org_id,
+        root: data.root,
+        children: data.children,
+        isLeaf: data.isLeaf ?? false,
+        _loading: false
+      }
+    ];
   }
 
   // 其他情况返回空数组

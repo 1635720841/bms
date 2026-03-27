@@ -1,3 +1,58 @@
+<template>
+  <div class="bms-prod-actions">
+    <div class="bms-prod-actions__btns">
+      <!-- 生产配置：统一入口，下拉区分“设备录入 / 生产配置” -->
+      <el-dropdown @command="handleProdCommand" :teleported="false" popper-class="bms-prod-dropdown">
+        <el-button type="primary" size="small">
+          生产配置
+          <el-icon class="bms-prod-actions__caret">
+            <ArrowDown />
+          </el-icon>
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="entry">设备录入</el-dropdown-item>
+            <el-dropdown-item command="config">生产配置</el-dropdown-item>
+            <el-dropdown-item command="config-manage">生产参数配置</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+
+      <!-- 调拨配置：统一入口，下拉区分“设备调拨 / 主平台配置” -->
+      <el-dropdown @command="handleTransferCommand" :teleported="false" popper-class="bms-prod-dropdown">
+        <el-button type="success" size="small">
+          调拨配置
+          <el-icon class="bms-prod-actions__caret">
+            <ArrowDown />
+          </el-icon>
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="device">设备调拨</el-dropdown-item>
+            <el-dropdown-item command="platform">主平台配置</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+
+      <!-- 服务配置：下拉切换“设置服务价格 / 设置服务时间” -->
+      <el-dropdown @command="handleServiceConfigCommand" :teleported="false" popper-class="bms-prod-dropdown">
+        <el-button type="warning" size="small">
+          服务配置
+          <el-icon class="bms-prod-actions__caret">
+            <ArrowDown />
+          </el-icon>
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="pricing">设置服务价格</el-dropdown-item>
+            <el-dropdown-item command="time">设置服务时间</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { h, ref } from "vue";
 import { ElMessage } from "element-plus";
@@ -242,60 +297,6 @@ function handleProfileManage() {
 }
 </script>
 
-<template>
-  <div class="bms-prod-actions">
-    <div class="bms-prod-actions__btns">
-      <!-- 生产配置：统一入口，下拉区分“设备录入 / 生产配置” -->
-      <el-dropdown @command="handleProdCommand" :teleported="false" popper-class="bms-prod-dropdown">
-        <el-button type="primary" size="small">
-          生产配置
-          <el-icon class="bms-prod-actions__caret">
-            <ArrowDown />
-          </el-icon>
-        </el-button>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item command="entry">设备录入</el-dropdown-item>
-            <el-dropdown-item command="config">生产配置</el-dropdown-item>
-            <el-dropdown-item command="config-manage">生产参数配置</el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-
-      <!-- 调拨配置：统一入口，下拉区分“设备调拨 / 主平台配置” -->
-      <el-dropdown @command="handleTransferCommand" :teleported="false" popper-class="bms-prod-dropdown">
-        <el-button type="success" size="small">
-          调拨配置
-          <el-icon class="bms-prod-actions__caret">
-            <ArrowDown />
-          </el-icon>
-        </el-button>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item command="device">设备调拨</el-dropdown-item>
-            <el-dropdown-item command="platform">主平台配置</el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-
-      <!-- 服务配置：下拉切换“设置服务价格 / 设置服务时间” -->
-      <el-dropdown @command="handleServiceConfigCommand" :teleported="false" popper-class="bms-prod-dropdown">
-        <el-button type="warning" size="small">
-          服务配置
-          <el-icon class="bms-prod-actions__caret">
-            <ArrowDown />
-          </el-icon>
-        </el-button>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item command="pricing">设置服务价格</el-dropdown-item>
-            <el-dropdown-item command="time">设置服务时间</el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-    </div>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .bms-prod-actions {

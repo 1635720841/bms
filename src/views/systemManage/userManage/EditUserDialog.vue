@@ -1,3 +1,59 @@
+
+<template>
+  <div class="edit-user-dialog">
+    <el-form
+      ref="formRef"
+      :model="formData"
+      :rules="rules"
+      label-width="100px"
+      label-position="left"
+    >
+      <el-form-item label="所属组织">
+        <el-input v-model="formData.org_name" disabled />
+      </el-form-item>
+
+      <el-form-item label="登录账号">
+        <el-input v-model="formData.usr_name" disabled />
+      </el-form-item>
+
+      <el-form-item label="电子邮箱" prop="email">
+        <el-input
+          v-model="formData.email"
+          placeholder="请输入电子邮箱"
+          maxlength="50"
+          clearable
+        />
+      </el-form-item>
+
+      <el-form-item label="手机号码" prop="mobile">
+        <el-input
+          v-model="formData.mobile"
+          placeholder="请输入手机号码"
+          maxlength="11"
+          clearable
+        />
+      </el-form-item>
+
+      <el-form-item label="备注信息" prop="comment">
+        <el-input
+          v-model="formData.comment"
+          type="textarea"
+          placeholder="请输入备注信息"
+          maxlength="100"
+          :rows="3"
+          show-word-limit
+        />
+      </el-form-item>
+    </el-form>
+
+    <div class="dialog-footer">
+      <el-button @click="handleCancel">取消</el-button>
+      <el-button type="primary" :loading="loading" @click="handleSubmit">
+        确定
+      </el-button>
+    </div>
+  </div>
+</template>
 <script setup lang="ts">
 import { ref, reactive, watch } from "vue";
 import { ElMessage } from "element-plus";
@@ -94,62 +150,6 @@ function handleCancel() {
   emit("cancel");
 }
 </script>
-
-<template>
-  <div class="edit-user-dialog">
-    <el-form
-      ref="formRef"
-      :model="formData"
-      :rules="rules"
-      label-width="100px"
-      label-position="left"
-    >
-      <el-form-item label="所属组织">
-        <el-input v-model="formData.org_name" disabled />
-      </el-form-item>
-
-      <el-form-item label="登录账号">
-        <el-input v-model="formData.usr_name" disabled />
-      </el-form-item>
-
-      <el-form-item label="电子邮箱" prop="email">
-        <el-input
-          v-model="formData.email"
-          placeholder="请输入电子邮箱"
-          maxlength="50"
-          clearable
-        />
-      </el-form-item>
-
-      <el-form-item label="手机号码" prop="mobile">
-        <el-input
-          v-model="formData.mobile"
-          placeholder="请输入手机号码"
-          maxlength="11"
-          clearable
-        />
-      </el-form-item>
-
-      <el-form-item label="备注信息" prop="comment">
-        <el-input
-          v-model="formData.comment"
-          type="textarea"
-          placeholder="请输入备注信息"
-          maxlength="100"
-          :rows="3"
-          show-word-limit
-        />
-      </el-form-item>
-    </el-form>
-
-    <div class="dialog-footer">
-      <el-button @click="handleCancel">取消</el-button>
-      <el-button type="primary" :loading="loading" @click="handleSubmit">
-        确定
-      </el-button>
-    </div>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .edit-user-dialog {

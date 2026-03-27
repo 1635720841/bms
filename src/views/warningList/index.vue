@@ -1,6 +1,73 @@
+
+<template>
+  <div class="warning-list">
+    <div class="stats-header">
+      <div class="stats-title">告警类型统计</div>
+      <div v-if="warningStaticsUpdateTime" class="stats-time">
+        数据统计时间：{{ warningStaticsUpdateTime }}
+      </div>
+    </div>
+    <div class="stats-container stats-container--warning-types">
+      <div v-for="group in warningStaticsGroupList" :key="group.key" class="stat-card stat-card--warning-group">
+        <div class="stat-content">
+          <div class="stat-label">{{ group.title }}</div>
+          <div class="stat-tags">
+            <span v-for="child in group.children" :key="child.value" class="stat-tag"
+              :class="{ 'stat-tag--active': currentWarningType === child.value }"
+              @click="handleWarningTypeClick(child.value as BmsWarningKey)">
+              {{ child.label }}：{{ child.count }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 主内容卡片 -->
+    <div class="warning-list-card">
+      <!-- <div class="card-header">
+        <div class="card-title">
+          <svg class="title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span>告警监控</span>
+        </div>
+      </div> -->
+
+      <TableSearch :form-item="searchItems" page-name="warningList" :default-form-data="searchDefaultForm"
+        @query-btn="handleSearch" @reset-btn="handleReset" />
+
+      <pageTable :page="page" :data="list" :columns="columns" :loading="loading" rowkey="bmsId" notauto
+        height="calc(100vh - 440px)" @GetData="GetData">
+        <template #bmsId="{ row }">
+          <el-button link class="bms-link" @click="goBmsMonitor(row as BmsWarningListItem)">
+            {{ (row as BmsWarningListItem).bmsId }}
+          </el-button>
+        </template>
+        <template #time="{ row }">
+          {{ formatWarningTime(row as BmsWarningListItem) }}
+        </template>
+        <template v-for="item in warning_bit_config_value" :key="item.value" v-slot:[item.value]="{ row }">
+          <div
+            class="warning-cell"
+            :class="{
+              'warning-cell--active': !!row[item.value],
+              'warning-cell--normal': !row[item.value] && !hasAnyWarning(row),
+              'warning-cell--inactive': !row[item.value] && hasAnyWarning(row)
+            }"
+          >
+            <span class="status-dot"></span>
+            <span class="status-text">
+              {{ row[item.value] ? '是' : '否' }}
+            </span>
+          </div>
+        </template>
+      </pageTable>
+    </div>
+  </div>
+</template>
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { ref, computed, onMounted, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { getWarningBmsListReq, getWarningStaticsReq } from "@/api/bms";
 import type { BmsWarningKey, BmsWarningListItem, BmsWarningStatisticsMap } from "@/api/bms/types";
 import { warning_bit_config_value } from "@/utils/dict";
@@ -48,6 +115,7 @@ function normalizeToDateInput(value: unknown): number | string | null {
 }
 
 const router = useRouter();
+const route = useRoute();
 
 function formatWarningTime(row: BmsWarningListItem): string {
   const input = normalizeToDateInput(row.time);
@@ -56,6 +124,10 @@ function formatWarningTime(row: BmsWarningListItem): string {
 
 function goBmsMonitor(row: BmsWarningListItem) {
   router.push({ name: "BmsManage", query: { bmsId: row.bmsId } });
+}
+
+function hasAnyWarning(row: Record<string, unknown>): boolean {
+  return warning_bit_config_value.some(item => Boolean(row[item.value]));
 }
 
 const {
@@ -92,10 +164,27 @@ const {
 
     return requestParams;
   },
-  autoLoad: true
+  autoLoad: false
 });
 
 const searchDefaultForm = ref<WarningSearchForm>({});
+
+function isValidWarningType(value: unknown): value is BmsWarningKey {
+  if (typeof value !== "string") return false;
+  return warning_bit_config_value.some(item => item.value === value);
+}
+
+function applyRouteQueryAndSearch() {
+  const { warningType, bmsId } = route.query as Partial<Record<keyof WarningListQueryParams, unknown>>;
+
+  const nextForm: WarningSearchForm = {};
+  if (typeof bmsId === "string" && bmsId.trim()) nextForm.bmsId = bmsId.trim();
+  if (isValidWarningType(warningType)) nextForm.warningType = warningType;
+
+  // 回填 TableSearch，并触发查询（会重置到第一页）
+  searchDefaultForm.value = { ...nextForm };
+  handleSearch(nextForm);
+}
 
 /**
  * 顶部告警类型点击筛选
@@ -211,7 +300,23 @@ async function loadWarningStatics() {
 
 onMounted(() => {
   loadWarningStatics();
+
+  // 兼容从其他页面带 query 跳转（如：总览点击某类告警）
+  if (route.query?.warningType || route.query?.bmsId) {
+    applyRouteQueryAndSearch();
+  } else {
+    GetData();
+  }
 });
+
+watch(
+  () => route.query,
+  (q, prevQ) => {
+    // 同一路由下通过 query 变化进行筛选（避免重复触发）
+    if (q.warningType === prevQ?.warningType && q.bmsId === prevQ?.bmsId) return;
+    if (q.warningType || q.bmsId) applyRouteQueryAndSearch();
+  }
+);
 
 const warningColumns = warning_bit_config_value.map(item => ({
   label: item.label,
@@ -227,66 +332,6 @@ const columns = [
   ...warningColumns
 ];
 </script>
-
-<template>
-  <div class="warning-list">
-    <div class="stats-header">
-      <div class="stats-title">告警类型统计</div>
-      <div v-if="warningStaticsUpdateTime" class="stats-time">
-        数据统计时间：{{ warningStaticsUpdateTime }}
-      </div>
-    </div>
-    <div class="stats-container stats-container--warning-types">
-      <div v-for="group in warningStaticsGroupList" :key="group.key" class="stat-card stat-card--warning-group">
-        <div class="stat-content">
-          <div class="stat-label">{{ group.title }}</div>
-          <div class="stat-tags">
-            <span v-for="child in group.children" :key="child.value" class="stat-tag"
-              :class="{ 'stat-tag--active': currentWarningType === child.value }"
-              @click="handleWarningTypeClick(child.value as BmsWarningKey)">
-              {{ child.label }}：{{ child.count }}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 主内容卡片 -->
-    <div class="warning-list-card">
-      <!-- <div class="card-header">
-        <div class="card-title">
-          <svg class="title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <span>告警监控</span>
-        </div>
-      </div> -->
-
-      <TableSearch :form-item="searchItems" page-name="warningList" :default-form-data="searchDefaultForm"
-        @query-btn="handleSearch" @reset-btn="handleReset" />
-
-      <pageTable :page="page" :data="list" :columns="columns" :loading="loading" rowkey="bmsId" notauto
-        height="calc(100vh - 440px)" @GetData="GetData">
-        <template #bmsId="{ row }">
-          <el-button link class="bms-link" @click="goBmsMonitor(row as BmsWarningListItem)">
-            {{ (row as BmsWarningListItem).bmsId }}
-          </el-button>
-        </template>
-        <template #time="{ row }">
-          {{ formatWarningTime(row as BmsWarningListItem) }}
-        </template>
-        <template v-for="item in warning_bit_config_value" :key="item.value" v-slot:[item.value]="{ row }">
-          <div class="warning-cell" :class="row[item.value] ? 'warning-cell--active' : 'warning-cell--inactive'">
-            <span class="status-dot"></span>
-            <span class="status-text">
-              {{ row[item.value] ? '是' : '否' }}
-            </span>
-          </div>
-        </template>
-      </pageTable>
-    </div>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .warning-list {
@@ -457,9 +502,15 @@ const columns = [
 }
 
 .stat-tag--active {
-  background: rgba(255, 184, 77, 0.3);
-  border-color: #ffb84d;
-  color: #fff;
+  background: linear-gradient(135deg, rgba(255, 184, 77, 0.55) 0%, rgba(255, 149, 0, 0.45) 100%);
+  border-color: rgba(255, 214, 128, 0.95);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow:
+    0 0 0 1px rgba(255, 214, 128, 0.55) inset,
+    0 6px 14px rgba(255, 149, 0, 0.22),
+    0 0 18px rgba(255, 184, 77, 0.28);
+  transform: translateY(-1px);
 }
 
 .stat-card--normal {
@@ -581,6 +632,10 @@ const columns = [
   color: rgba(148, 163, 184, 0.9);
 }
 
+.warning-cell--normal {
+  color: #34d399;
+}
+
 .status-dot {
   width: 8px;
   height: 8px;
@@ -591,6 +646,11 @@ const columns = [
 .warning-cell--active .status-dot {
   background: #ff3300;
   box-shadow: 0 0 6px rgba(255, 51, 0, 0.8);
+}
+
+.warning-cell--normal .status-dot {
+  background: #34d399;
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.5);
 }
 
 .status-text {

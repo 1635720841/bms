@@ -1,3 +1,30 @@
+<template>
+  <div v-loading="submitting" class="pm-panel">
+    <el-form label-width="100px" class="pm-form">
+      <el-form-item v-if="isTransfer" :label="orgLabel" :required="orgRequired">
+        <div class="pm-org-row">
+          <el-button type="primary" plain @click="orgSelectVisible = true">选择组织</el-button>
+          <div class="pm-org-name">
+            <span class="pm-org-name__text">
+              {{ selectedOrg?.org_name || orgPlaceholder }}
+            </span>
+            <el-button v-if="selectedOrg" link type="danger" @click="clearOrg">清除</el-button>
+          </div>
+        </div>
+      </el-form-item>
+
+      <DeviceCodeInputPanel
+        ref="codeInputRef"
+        :initial-bms-ids="initialBmsIds"
+        :required="true"
+        :recognize-button-plain="true"
+      />
+    </el-form>
+
+    <OrgSelectDialog v-model="orgSelectVisible" @select="handleOrgSelected" />
+  </div>
+</template>
+
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -166,33 +193,6 @@ defineExpose({
   submit
 });
 </script>
-
-<template>
-  <div v-loading="submitting" class="pm-panel">
-    <el-form label-width="100px" class="pm-form">
-      <el-form-item v-if="isTransfer" :label="orgLabel" :required="orgRequired">
-        <div class="pm-org-row">
-          <el-button type="primary" plain @click="orgSelectVisible = true">选择组织</el-button>
-          <div class="pm-org-name">
-            <span class="pm-org-name__text">
-              {{ selectedOrg?.org_name || orgPlaceholder }}
-            </span>
-            <el-button v-if="selectedOrg" link type="danger" @click="clearOrg">清除</el-button>
-          </div>
-        </div>
-      </el-form-item>
-
-      <DeviceCodeInputPanel
-        ref="codeInputRef"
-        :initial-bms-ids="initialBmsIds"
-        :required="true"
-        :recognize-button-plain="true"
-      />
-    </el-form>
-
-    <OrgSelectDialog v-model="orgSelectVisible" @select="handleOrgSelected" />
-  </div>
-</template>
 
 <style scoped lang="scss">
 .pm-panel {

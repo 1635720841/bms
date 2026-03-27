@@ -1,3 +1,27 @@
+<template>
+  <div v-loading="submitting" class="pm-panel">
+    <el-form label-width="100px" class="pm-form">
+      <DeviceCodeInputPanel
+        ref="codeInputRef"
+        :initial-bms-ids="initialBmsIds"
+        :required="true"
+        :recognize-button-plain="true"
+      />
+
+      <el-form-item label="价格(元/年)" required>
+        <el-input-number
+          v-model="price"
+          class="pm-number"
+          :min="0"
+          :max="999999"
+          :precision="2"
+          :controls="false"
+          placeholder="请输入价格"
+        />
+      </el-form-item>
+    </el-form>
+  </div>
+</template>
 <script setup lang="ts">
 import { ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -122,30 +146,6 @@ defineExpose({
 });
 </script>
 
-<template>
-  <div v-loading="submitting" class="pm-panel">
-    <el-form label-width="100px" class="pm-form">
-      <DeviceCodeInputPanel
-        ref="codeInputRef"
-        :initial-bms-ids="initialBmsIds"
-        :required="true"
-        :recognize-button-plain="true"
-      />
-
-      <el-form-item label="价格(元/年)" required>
-        <el-input-number
-          v-model="price"
-          class="pm-number"
-          :min="0"
-          :max="999999"
-          :precision="2"
-          :controls="false"
-          placeholder="请输入价格"
-        />
-      </el-form-item>
-    </el-form>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .pm-panel {

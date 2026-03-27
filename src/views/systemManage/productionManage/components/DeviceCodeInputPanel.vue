@@ -1,3 +1,45 @@
+<template>
+  <el-form-item :label="label" :required="required">
+    <div class="pm-input-head">
+      <div class="pm-input-head__hint">逗号 / 空格 / 换行分割</div>
+      <div class="pm-input-head__count">{{ devCount }}</div>
+    </div>
+    <el-input
+      v-model="devString"
+      type="textarea"
+      :rows="5"
+      placeholder="请输入设备编码..."
+    />
+    <div class="pm-input-actions">
+      <el-button @click="clearInputDevs">清空</el-button>
+      <el-button
+        type="primary"
+        :plain="recognizeButtonPlain"
+        @click="preview"
+      >
+        识别
+      </el-button>
+    </div>
+  </el-form-item>
+
+  <el-form-item v-if="isPreview" :label="previewLabel">
+    <div class="pm-preview">
+      <el-scrollbar max-height="180px">
+        <div class="pm-preview__tags">
+          <el-tag
+            v-for="it in validDevList"
+            :key="it"
+            type="info"
+            effect="plain"
+          >
+            {{ it }}
+          </el-tag>
+        </div>
+      </el-scrollbar>
+    </div>
+  </el-form-item>
+</template>
+
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
@@ -95,48 +137,6 @@ defineExpose({
   clearInputDevs
 });
 </script>
-
-<template>
-  <el-form-item :label="label" :required="required">
-    <div class="pm-input-head">
-      <div class="pm-input-head__hint">逗号 / 空格 / 换行分割</div>
-      <div class="pm-input-head__count">{{ devCount }}</div>
-    </div>
-    <el-input
-      v-model="devString"
-      type="textarea"
-      :rows="5"
-      placeholder="请输入设备编码..."
-    />
-    <div class="pm-input-actions">
-      <el-button @click="clearInputDevs">清空</el-button>
-      <el-button
-        type="primary"
-        :plain="recognizeButtonPlain"
-        @click="preview"
-      >
-        识别
-      </el-button>
-    </div>
-  </el-form-item>
-
-  <el-form-item v-if="isPreview" :label="previewLabel">
-    <div class="pm-preview">
-      <el-scrollbar max-height="180px">
-        <div class="pm-preview__tags">
-          <el-tag
-            v-for="it in validDevList"
-            :key="it"
-            type="info"
-            effect="plain"
-          >
-            {{ it }}
-          </el-tag>
-        </div>
-      </el-scrollbar>
-    </div>
-  </el-form-item>
-</template>
 
 <style scoped lang="scss">
 .pm-input-head {

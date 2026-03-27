@@ -1,3 +1,49 @@
+
+<template>
+  <el-dialog
+    v-model="visible"
+    title="选择组织"
+    width="500px"
+    :close-on-click-modal="false"
+  >
+    <div v-loading="loading" class="org-select-content">
+      <el-tree
+        ref="orgTreeRef"
+        node-key="org_id"
+        :props="{
+          label: 'org_name',
+          children: 'children',
+          isLeaf: (data: BmsOrgNode) => data.isLeaf === true
+        }"
+        :expand-on-click-node="false"
+        :highlight-current="true"
+        :lazy="true"
+        :load="loadOrgChildren"
+        @node-click="handleNodeClick"
+      >
+        <template #default="{ node, data }">
+          <div class="custom-tree-node">
+            <svg class="tree-node-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path
+                d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span class="tree-node-label">{{ data.org_name }}</span>
+          </div>
+        </template>
+      </el-tree>
+    </div>
+
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="handleCancel">取消</el-button>
+        <el-button type="primary" @click="handleConfirm">确定</el-button>
+      </div>
+    </template>
+  </el-dialog>
+</template>
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { ElMessage } from "element-plus";
@@ -99,52 +145,6 @@ function handleCancel() {
   visible.value = false;
 }
 </script>
-
-<template>
-  <el-dialog
-    v-model="visible"
-    title="选择组织"
-    width="500px"
-    :close-on-click-modal="false"
-  >
-    <div v-loading="loading" class="org-select-content">
-      <el-tree
-        ref="orgTreeRef"
-        node-key="org_id"
-        :props="{
-          label: 'org_name',
-          children: 'children',
-          isLeaf: (data: BmsOrgNode) => data.isLeaf === true
-        }"
-        :expand-on-click-node="false"
-        :highlight-current="true"
-        :lazy="true"
-        :load="loadOrgChildren"
-        @node-click="handleNodeClick"
-      >
-        <template #default="{ node, data }">
-          <div class="custom-tree-node">
-            <svg class="tree-node-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path
-                d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <span class="tree-node-label">{{ data.org_name }}</span>
-          </div>
-        </template>
-      </el-tree>
-    </div>
-
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="handleCancel">取消</el-button>
-        <el-button type="primary" @click="handleConfirm">确定</el-button>
-      </div>
-    </template>
-  </el-dialog>
-</template>
 
 <style scoped lang="scss">
 .org-select-content {

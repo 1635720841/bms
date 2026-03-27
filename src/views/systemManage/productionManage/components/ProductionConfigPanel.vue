@@ -1,3 +1,52 @@
+<template>
+  <div v-loading="submitting" class="pm-panel">
+    <el-form label-width="100px" class="pm-form">
+      <DeviceCodeInputPanel
+        ref="codeInputRef"
+        :initial-bms-ids="initialBmsIds"
+        :required="true"
+      />
+
+      <el-form-item label="生产配置" required>
+        <el-select
+          v-model="selectedProfileId"
+          class="pm-select"
+          placeholder="请选择生产配置"
+          :loading="loadingProfiles"
+          @change="handleProfileChange"
+        >
+          <el-option
+            v-for="it in profileList"
+            :key="it.id"
+            :label="it.name"
+            :value="it.id"
+          />
+        </el-select>
+      </el-form-item>
+
+      <el-form-item v-if="profileDetail" label="配置详情">
+        <div class="pm-profile">
+          <el-scrollbar max-height="240px">
+            <ul v-if="profileDetail.title && profileDetail.value">
+              <li
+                v-for="(t, idx) in profileDetail.title"
+                :key="`${t}-${idx}`"
+                class="pm-profile__row"
+              >
+                <span class="pm-profile__label">{{ t }}</span>
+                <span class="pm-profile__value">
+                  {{ profileDetail.value?.[idx] ?? "" }}
+                </span>
+              </li>
+            </ul>
+            <div v-else class="pm-profile__empty">暂无详情</div>
+          </el-scrollbar>
+        </div>
+      </el-form-item>
+    </el-form>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -168,55 +217,6 @@ defineExpose({
   submit
 });
 </script>
-
-<template>
-  <div v-loading="submitting" class="pm-panel">
-    <el-form label-width="100px" class="pm-form">
-      <DeviceCodeInputPanel
-        ref="codeInputRef"
-        :initial-bms-ids="initialBmsIds"
-        :required="true"
-      />
-
-      <el-form-item label="生产配置" required>
-        <el-select
-          v-model="selectedProfileId"
-          class="pm-select"
-          placeholder="请选择生产配置"
-          :loading="loadingProfiles"
-          @change="handleProfileChange"
-        >
-          <el-option
-            v-for="it in profileList"
-            :key="it.id"
-            :label="it.name"
-            :value="it.id"
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item v-if="profileDetail" label="配置详情">
-        <div class="pm-profile">
-          <el-scrollbar max-height="240px">
-            <ul v-if="profileDetail.title && profileDetail.value">
-              <li
-                v-for="(t, idx) in profileDetail.title"
-                :key="`${t}-${idx}`"
-                class="pm-profile__row"
-              >
-                <span class="pm-profile__label">{{ t }}</span>
-                <span class="pm-profile__value">
-                  {{ profileDetail.value?.[idx] ?? "" }}
-                </span>
-              </li>
-            </ul>
-            <div v-else class="pm-profile__empty">暂无详情</div>
-          </el-scrollbar>
-        </div>
-      </el-form-item>
-    </el-form>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .pm-panel {

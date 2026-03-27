@@ -1,3 +1,94 @@
+<template>
+  <el-dialog :model-value="modelValue" title="批量配置" width="1300px" top="10px" destroy-on-close append-to-body
+    class="batch-config-dialog" @update:model-value="emit('update:modelValue', $event)">
+    <div v-loading="loading" class="batch-dialog">
+      <div class="batch-card">
+        <div class="batch-card__head">
+          <div class="section-title">
+            {{ getSectionTitle() }}
+          </div>
+        </div>
+
+        <div class="custom-tabs">
+          <div v-for="tab in tabList" :key="tab.name" :class="['tab-item', { active: activeTab === tab.name }]"
+            @click="activeTab = tab.name">
+            {{ tab.label }}
+          </div>
+        </div>
+
+        <el-form label-width="110px" class="form">
+          <el-form-item label="设备编码">
+            <el-input v-model="bmsText" type="textarea" :rows="3" placeholder="逗号、换行分割，可从设备列表多选自动带入" />
+            <div class="hint">数量：{{ bmsIds.length }}</div>
+          </el-form-item>
+
+          <el-form-item label="离线任务">
+            <el-radio-group v-model="offlineTask">
+              <el-radio :value="0">仅配置在线设备</el-radio>
+              <el-radio :value="1">配置所有设备（包括离线任务）</el-radio>
+            </el-radio-group>
+          </el-form-item>
+
+          <el-form-item v-if="shouldShowMaterialType()" label="材料类型">
+            <el-radio-group v-model="materialType">
+              <el-radio :value="1">按铁锂参数配</el-radio>
+              <el-radio :value="2">按三元参数配</el-radio>
+            </el-radio-group>
+          </el-form-item>
+
+          <BtcodeTab v-if="activeTab === 'btcode'" v-model:btcode-text="btcodeText" :bt-count="btcodes.length"
+            :bms-ids="bmsIds" />
+
+          <ThirdServerTab v-else-if="activeTab === 'thirdServer'" v-model:selected-value="selectedThirdSrvValue"
+            :third-srv-list="thirdSrvList" />
+
+          <BasicParamsTab v-else-if="activeTab === 'basicParams'" ref="basicParamsTabRef" />
+
+          <CellOvTab v-else-if="activeTab === 'cellOv'" ref="cellOvTabRef" :ranges="materialRanges"
+            :loading-ranges="loadingMaterialRanges" />
+
+          <CellUvTab v-else-if="activeTab === 'cellUv'" ref="cellUvTabRef" :ranges="materialRanges"
+            :loading-ranges="loadingMaterialRanges" />
+
+          <PackOvTab v-else-if="activeTab === 'packOv'" ref="packOvTabRef" :ranges="materialRanges"
+            :loading-ranges="loadingMaterialRanges" />
+
+          <PackUvTab v-else-if="activeTab === 'packUv'" ref="packUvTabRef" :ranges="materialRanges"
+            :loading-ranges="loadingMaterialRanges" />
+
+          <DischargeOcdTab v-else-if="activeTab === 'dischargeOcd1'" ref="dischargeOcd1TabRef" variant="ocd1"
+            :ranges="commonRanges" :loading-ranges="loadingRanges" />
+
+          <DischargeOcdTab v-else-if="activeTab === 'dischargeOcd2'" ref="dischargeOcd2TabRef" variant="ocd2"
+            :ranges="commonRanges" :loading-ranges="loadingRanges" />
+
+          <DischargeOcdTab v-else-if="activeTab === 'dischargeOcd3'" ref="dischargeOcd3TabRef" variant="ocd3"
+            :ranges="commonRanges" :loading-ranges="loadingRanges" />
+
+          <ChargeOccTab v-else-if="activeTab === 'chargeOcc1'" ref="chargeOcc1TabRef" variant="occ1"
+            :ranges="commonRanges" :loading-ranges="loadingRanges" />
+
+          <ChargeOccTab v-else-if="activeTab === 'chargeOcc2'" ref="chargeOcc2TabRef" variant="occ2"
+            :ranges="commonRanges" :loading-ranges="loadingRanges" />
+
+          <DischargeScdTab v-else-if="activeTab === 'dischargeScd'" ref="dischargeScdTabRef" :ranges="commonRanges"
+            :loading-ranges="loadingRanges" />
+
+          <BatchFunCtrlSwitchTab v-else-if="activeTab === 'funCtrlSwitch'" ref="funCtrlSwitchTabRef"
+            :options="funCtrlSwitchOptions" />
+
+          <el-form-item style="margin-top: 10px;">
+            <el-button @click="emit('update:modelValue', false)">取消</el-button>
+            <el-button type="primary" :disabled="bmsIds.length === 0" @click="handleSubmit">
+              下发配置
+            </el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+  </el-dialog>
+</template>
+
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
@@ -28,7 +119,7 @@ import ChargeOccTab from "./ChargeOccTab.vue";
 import DischargeScdTab from "./DischargeScdTab.vue";
 import PackOvTab from "./PackOvTab.vue";
 import PackUvTab from "./PackUvTab.vue";
-import SwitchTab from "./SwitchTab.vue";
+import BatchFunCtrlSwitchTab from "./BatchFunCtrlSwitchTab.vue";
 import HardwareOcdTab from "./HardwareOcdTab.vue";
 import { getThirdServerListReq, getParamsRangeReq } from "@/api/bms";
 import type { BmsRangesMap } from "@/api/bms/types";
@@ -68,8 +159,7 @@ const activeTab = ref<
   | "chargeOcc1"
   | "chargeOcc2"
   | "dischargeScd"
-  | "dischargeSwitch"
-  | "blindChargeSwitch"
+  | "funCtrlSwitch"
 >("btcode");
 
 const { loading, confirmAndSubmit } = useConfigConfirm();
@@ -89,8 +179,7 @@ type TabName =
   | "chargeOcc1"
   | "chargeOcc2"
   | "dischargeScd"
-  | "dischargeSwitch"
-  | "blindChargeSwitch";
+  | "funCtrlSwitch";
 
 const tabList: Array<{ label: string; name: TabName }> = [
   { label: "BT码", name: "btcode" },
@@ -106,9 +195,16 @@ const tabList: Array<{ label: string; name: TabName }> = [
   { label: "I级充电过流", name: "chargeOcc1" },
   { label: "II级充电过流", name: "chargeOcc2" },
   { label: "放电短路保护", name: "dischargeScd" },
-  { label: "放电开关", name: "dischargeSwitch" },
-  { label: "盲充开关", name: "blindChargeSwitch" }
+  { label: "功能开关", name: "funCtrlSwitch" }
 ];
+
+/** 批量 funCtrl：放电 / 充电 / 盲充 / 防打火，由 BatchFunCtrlSwitchTab 通过 options 驱动 */
+const funCtrlSwitchOptions = [
+  { paramKey: "discharge" as const, label: "放电开关" },
+  { paramKey: "charge" as const, label: "充电开关" },
+  { paramKey: "blindChg" as const, label: "盲充开关" },
+  { paramKey: "preventSpark" as const, label: "防打火开关" }
+] as const;
 
 const offlineTask = ref<BmsOfflineTask>(0);
 
@@ -144,8 +240,7 @@ const hardwareOcdTabRef = ref<InstanceType<typeof HardwareOcdTab> | null>(null);
 const chargeOcc1TabRef = ref<InstanceType<typeof ChargeOccTab> | null>(null);
 const chargeOcc2TabRef = ref<InstanceType<typeof ChargeOccTab> | null>(null);
 const dischargeScdTabRef = ref<InstanceType<typeof DischargeScdTab> | null>(null);
-const dischargeSwitchTabRef = ref<InstanceType<typeof SwitchTab> | null>(null);
-const blindChargeSwitchTabRef = ref<InstanceType<typeof SwitchTab> | null>(null);
+const funCtrlSwitchTabRef = ref<InstanceType<typeof BatchFunCtrlSwitchTab> | null>(null);
 
 function normalizeList(input: string): string[] {
   const raw = String(input ?? "")
@@ -236,7 +331,6 @@ async function submitBtCode() {
     },
     onSuccess: () => {
       emit("success");
-      emit("update:modelValue", false);
     }
   });
 }
@@ -264,7 +358,6 @@ async function submitThirdServer() {
     },
     onSuccess: () => {
       emit("success");
-      emit("update:modelValue", false);
     }
   });
 }
@@ -293,7 +386,6 @@ async function submitBasicParams() {
     },
     onSuccess: () => {
       emit("success");
-      emit("update:modelValue", false);
     }
   });
 }
@@ -322,7 +414,6 @@ async function submitCellOv() {
     },
     onSuccess: () => {
       emit("success");
-      emit("update:modelValue", false);
     }
   });
 }
@@ -350,7 +441,6 @@ async function submitDischargeOcd1() {
     },
     onSuccess: () => {
       emit("success");
-      emit("update:modelValue", false);
     }
   });
 }
@@ -378,7 +468,6 @@ async function submitDischargeOcd2() {
     },
     onSuccess: () => {
       emit("success");
-      emit("update:modelValue", false);
     }
   });
 }
@@ -406,7 +495,6 @@ async function submitDischargeOcd3() {
     },
     onSuccess: () => {
       emit("success");
-      emit("update:modelValue", false);
     }
   });
 }
@@ -434,7 +522,6 @@ async function submitChargeOcc1() {
     },
     onSuccess: () => {
       emit("success");
-      emit("update:modelValue", false);
     }
   });
 }
@@ -462,7 +549,6 @@ async function submitChargeOcc2() {
     },
     onSuccess: () => {
       emit("success");
-      emit("update:modelValue", false);
     }
   });
 }
@@ -490,7 +576,6 @@ async function submitDischargeScd() {
     },
     onSuccess: () => {
       emit("success");
-      emit("update:modelValue", false);
     }
   });
 }
@@ -519,7 +604,6 @@ async function submitCellUv() {
     },
     onSuccess: () => {
       emit("success");
-      emit("update:modelValue", false);
     }
   });
 }
@@ -548,7 +632,6 @@ async function submitPackOv() {
     },
     onSuccess: () => {
       emit("success");
-      emit("update:modelValue", false);
     }
   });
 }
@@ -577,63 +660,33 @@ async function submitPackUv() {
     },
     onSuccess: () => {
       emit("success");
-      emit("update:modelValue", false);
     }
   });
 }
 
-async function submitDischargeSwitch() {
+async function submitFunCtrlSwitch() {
   if (bmsIds.value.length === 0) {
     ElMessage.warning("请先输入设备编码");
     return;
   }
-  const tab = dischargeSwitchTabRef.value;
+  const tab = funCtrlSwitchTabRef.value;
   if (!tab?.validate()) {
-    ElMessage.warning("请选择放电开关状态");
+    ElMessage.warning("请选择开关类型与状态");
     return;
   }
   await confirmAndSubmit({
-    configName: "放电开关配置",
+    configName: tab.getConfigName(),
     isBatch: true,
     deviceCount: bmsIds.value.length,
     execute: async () => {
       return await setBatchFunCtrlReq({
         bms_id_list: bmsIds.value,
         offline_task: offlineTask.value,
-        params: { discharge: tab.getPayload().op }
+        params: tab.getPayload()
       });
     },
     onSuccess: () => {
       emit("success");
-      emit("update:modelValue", false);
-    }
-  });
-}
-
-async function submitBlindChargeSwitch() {
-  if (bmsIds.value.length === 0) {
-    ElMessage.warning("请先输入设备编码");
-    return;
-  }
-  const tab = blindChargeSwitchTabRef.value;
-  if (!tab?.validate()) {
-    ElMessage.warning("请选择盲充开关状态");
-    return;
-  }
-  await confirmAndSubmit({
-    configName: "盲充开关配置",
-    isBatch: true,
-    deviceCount: bmsIds.value.length,
-    execute: async () => {
-      return await setBatchFunCtrlReq({
-        bms_id_list: bmsIds.value,
-        offline_task: offlineTask.value,
-        params: { blindChg: tab.getPayload().op }
-      });
-    },
-    onSuccess: () => {
-      emit("success");
-      emit("update:modelValue", false);
     }
   });
 }
@@ -654,8 +707,7 @@ function getSectionTitle(): string {
     chargeOcc1: "I级充电过流配置（批量）",
     chargeOcc2: "II级充电过流配置（批量）",
     dischargeScd: "放电短路保护配置（批量）",
-    dischargeSwitch: "放电开关配置（批量）",
-    blindChargeSwitch: "盲充开关配置（批量）"
+    funCtrlSwitch: "功能开关配置（批量）"
   };
   return map[activeTab.value];
 }
@@ -683,8 +735,7 @@ function handleSubmit() {
   else if (activeTab.value === "chargeOcc1") submitChargeOcc1();
   else if (activeTab.value === "chargeOcc2") submitChargeOcc2();
   else if (activeTab.value === "dischargeScd") submitDischargeScd();
-  else if (activeTab.value === "dischargeSwitch") submitDischargeSwitch();
-  else if (activeTab.value === "blindChargeSwitch") submitBlindChargeSwitch();
+  else if (activeTab.value === "funCtrlSwitch") submitFunCtrlSwitch();
 }
 
 loadThirdServerList();
@@ -715,100 +766,6 @@ watch(materialType, () => {
   }
 });
 </script>
-
-<template>
-  <el-dialog :model-value="modelValue" title="批量配置" width="1300px" top="10px" destroy-on-close append-to-body
-    class="batch-config-dialog" @update:model-value="emit('update:modelValue', $event)">
-    <div v-loading="loading" class="batch-dialog">
-      <div class="batch-card">
-        <div class="batch-card__head">
-          <div class="section-title">
-            {{ getSectionTitle() }}
-          </div>
-        </div>
-
-        <div class="custom-tabs">
-          <div v-for="tab in tabList" :key="tab.name" :class="['tab-item', { active: activeTab === tab.name }]"
-            @click="activeTab = tab.name">
-            {{ tab.label }}
-          </div>
-        </div>
-
-        <el-form label-width="110px" class="form">
-          <el-form-item label="设备编码">
-            <el-input v-model="bmsText" type="textarea" :rows="3" placeholder="逗号、换行分割，可从设备列表多选自动带入" />
-            <div class="hint">数量：{{ bmsIds.length }}</div>
-          </el-form-item>
-
-          <el-form-item label="离线任务">
-            <el-radio-group v-model="offlineTask">
-              <el-radio :value="0">仅配置在线设备</el-radio>
-              <el-radio :value="1">配置所有设备（包括离线任务）</el-radio>
-            </el-radio-group>
-          </el-form-item>
-
-          <el-form-item v-if="shouldShowMaterialType()" label="材料类型">
-            <el-radio-group v-model="materialType">
-              <el-radio :value="1">按铁锂参数配</el-radio>
-              <el-radio :value="2">按三元参数配</el-radio>
-            </el-radio-group>
-          </el-form-item>
-
-          <BtcodeTab v-if="activeTab === 'btcode'" v-model:btcode-text="btcodeText" :bt-count="btcodes.length"
-            :bms-ids="bmsIds" />
-
-          <ThirdServerTab v-else-if="activeTab === 'thirdServer'" v-model:selected-value="selectedThirdSrvValue"
-            :third-srv-list="thirdSrvList" />
-
-          <BasicParamsTab v-else-if="activeTab === 'basicParams'" ref="basicParamsTabRef" />
-
-          <CellOvTab v-else-if="activeTab === 'cellOv'" ref="cellOvTabRef" :ranges="materialRanges"
-            :loading-ranges="loadingMaterialRanges" />
-
-          <CellUvTab v-else-if="activeTab === 'cellUv'" ref="cellUvTabRef" :ranges="materialRanges"
-            :loading-ranges="loadingMaterialRanges" />
-
-          <PackOvTab v-else-if="activeTab === 'packOv'" ref="packOvTabRef" :ranges="materialRanges"
-            :loading-ranges="loadingMaterialRanges" />
-
-          <PackUvTab v-else-if="activeTab === 'packUv'" ref="packUvTabRef" :ranges="materialRanges"
-            :loading-ranges="loadingMaterialRanges" />
-
-          <DischargeOcdTab v-else-if="activeTab === 'dischargeOcd1'" ref="dischargeOcd1TabRef" variant="ocd1"
-            :ranges="commonRanges" :loading-ranges="loadingRanges" />
-
-          <DischargeOcdTab v-else-if="activeTab === 'dischargeOcd2'" ref="dischargeOcd2TabRef" variant="ocd2"
-            :ranges="commonRanges" :loading-ranges="loadingRanges" />
-
-          <DischargeOcdTab v-else-if="activeTab === 'dischargeOcd3'" ref="dischargeOcd3TabRef" variant="ocd3"
-            :ranges="commonRanges" :loading-ranges="loadingRanges" />
-
-          <ChargeOccTab v-else-if="activeTab === 'chargeOcc1'" ref="chargeOcc1TabRef" variant="occ1"
-            :ranges="commonRanges" :loading-ranges="loadingRanges" />
-
-          <ChargeOccTab v-else-if="activeTab === 'chargeOcc2'" ref="chargeOcc2TabRef" variant="occ2"
-            :ranges="commonRanges" :loading-ranges="loadingRanges" />
-
-          <DischargeScdTab v-else-if="activeTab === 'dischargeScd'" ref="dischargeScdTabRef" :ranges="commonRanges"
-            :loading-ranges="loadingRanges" />
-
-          <SwitchTab v-else-if="activeTab === 'dischargeSwitch'" ref="dischargeSwitchTabRef" title="放电开关"
-            :default-value="1" />
-
-          <SwitchTab v-else-if="activeTab === 'blindChargeSwitch'" ref="blindChargeSwitchTabRef" title="盲充开关"
-            :default-value="1" />
-
-          <el-form-item style="margin-top: 10px;">
-            <el-button @click="emit('update:modelValue', false)">取消</el-button>
-            <el-button type="primary" :disabled="bmsIds.length === 0" @click="handleSubmit">
-              下发配置
-            </el-button>
-          </el-form-item>
-        </el-form>
-      </div>
-    </div>
-  </el-dialog>
-</template>
 
 <style scoped lang="scss">
 /* 容器基础设置 */

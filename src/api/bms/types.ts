@@ -500,10 +500,13 @@ export interface BmsOrgNode {
 export interface BmsGetOrgRootRes {
   errno: number;
   errmsg?: string;
-  data?: BmsOrgNode | BmsOrgNode[] | {
-    root: boolean;
-    org_id: number[] | { org_id: number; org_name: string; }[];
-  };
+  data?:
+    | BmsOrgNode
+    | BmsOrgNode[]
+    | {
+        root: boolean;
+        org_id: number[] | { org_id: number; org_name: string }[];
+      };
 }
 
 /** 获取组织子节点列表请求参数 */
@@ -593,26 +596,7 @@ export interface BmsWarningListItem {
 }
 
 /** 告警类型 key（与 protect_bit_config 中的 value 一一对应） */
-export type BmsWarningKey =
-  | "cov"
-  | "cuv"
-  | "bov"
-  | "buv"
-  | "dsc"
-  | "doc1"
-  | "doc2"
-  | "coc1"
-  | "coc2"
-  | "dot"
-  | "dut"
-  | "cot"
-  | "cut"
-  | "mot"
-  | "afelost"
-  | "ntclost"
-  | "celllost"
-  | "cmosfault"
-  | "dmosfault";
+export type BmsWarningKey = "cov" | "cuv" | "bov" | "buv" | "dsc" | "doc1" | "doc2" | "coc1" | "coc2" | "dot" | "dut" | "cot" | "cut" | "mot" | "afelost" | "ntclost" | "celllost" | "cmosfault" | "dmosfault";
 
 /** 告警统计映射（/bms/api/get/warningstatics 的 statistics 字段） */
 export type BmsWarningStatisticsMap = Record<BmsWarningKey, number>;
@@ -755,9 +739,72 @@ export interface BmsGetAllstaticsRes {
   data?: {
     "3rdsession": string;
     offline: BmsTimeDimensionStats;
+    /**
+     * 设备定位分布（省_市 -> 数量）
+     * 例如：{ "广东_深圳市": 1603, "香港_香港特别行政区": 7 }
+     */
+    loc?: Record<string, number>;
     update_time: number;
     expired: Omit<BmsTimeDimensionStats, "day">;
     nogps: BmsTimeDimensionStats;
+    /** 电池断开统计（接口可能返回） */
+    bocDisc?: BmsTimeDimensionStats;
     statistics: BmsWarningStatisticsMap;
+  };
+}
+
+/** 放电过流设备列表项 */
+export interface BmsBocDiscBmsListItem {
+  /** 设备 id（接口可能返回 bms_id 或 id，这里统一做兼容） */
+  bms_id?: string;
+  id?: string;
+  /** 发生/记录时间（秒/毫秒时间戳 或 字符串） */
+  time?: number | string;
+}
+
+/** 放电过流设备列表请求参数 */
+export interface BmsBocDiscBmsListParams {
+  page?: number;
+  pageSize?: number;
+  /** 筛选条件（与 deviceList 一致，包在 filters 字段里） */
+  filters?: {
+    /**
+     * 设备 id（后端字段可能为 bmsId 或 bms_id）
+     * 这里同时传递兼容字段，避免后端实现差异导致过滤失效
+     */
+    bmsId?: string;
+    bms_id?: string;
+    /**
+     * 时间范围过滤（YYYY-MM-DD HH:mm:ss）
+     */
+    begin?: number | string;
+    end?: number | string;
+  };
+}
+
+/** 放电过流设备列表响应（/bms/api/get/bocdiscbmslist） */
+export interface BmsBocDiscBmsListRes {
+  errno: number;
+  errmsg?: string;
+  data?: {
+    /** 接口字段（按接口命名可能为 bocdiscbmslist） */
+    bocdiscbmslist?: BmsBocDiscBmsListItem[];
+    /** 兼容：可能返回驼峰字段名 */
+    bocDiscBmsList?: BmsBocDiscBmsListItem[];
+    /** 兼容：可能直接返回 list */
+    list?: BmsBocDiscBmsListItem[];
+    /** 接口返回：bmsList */
+    bmsList?: BmsBocDiscBmsListItem[];
+    /** 总数（如果接口直接返回总条数） */
+    total?: number;
+    /** 当前页码 */
+    page?: number;
+    /** 总页数（接口可能返回 totalPage / total_pages / totalPages 等） */
+    totalPage?: number;
+    totalPages?: number;
+    total_page?: number;
+    /** 兼容：请求分页参数回显 */
+    pageSize?: number;
+    page_size?: number;
   };
 }

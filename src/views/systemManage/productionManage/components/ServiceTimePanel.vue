@@ -1,3 +1,45 @@
+<template>
+  <div v-loading="submitting" class="pm-panel">
+    <el-form label-width="100px" class="pm-form">
+      <DeviceCodeInputPanel
+        ref="codeInputRef"
+        :initial-bms-ids="initialBmsIds"
+        :required="true"
+        :recognize-button-plain="true"
+      />
+
+      <el-form-item label="修改方式" required>
+        <el-radio-group v-model="wayOption">
+          <el-radio :value="1">增加天数</el-radio>
+          <el-radio :value="3">减少天数</el-radio>
+          <el-radio :value="2">按日期</el-radio>
+        </el-radio-group>
+      </el-form-item>
+
+      <el-form-item v-if="wayOption === 1 || wayOption === 3" label="天数" required>
+        <el-input-number
+          v-model="days"
+          class="pm-number"
+          :min="1"
+          :max="9999"
+          :precision="0"
+          :controls="false"
+          placeholder="请输入天数"
+        />
+      </el-form-item>
+
+      <el-form-item v-if="wayOption === 2" label="日期" required>
+        <el-date-picker
+          v-model="date"
+          type="date"
+          value-format="YYYY-MM-DD"
+          placeholder="选择日期"
+          style="width: 100%"
+        />
+      </el-form-item>
+    </el-form>
+  </div>
+</template>
 <script setup lang="ts">
 import { ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -137,48 +179,6 @@ defineExpose({
 });
 </script>
 
-<template>
-  <div v-loading="submitting" class="pm-panel">
-    <el-form label-width="100px" class="pm-form">
-      <DeviceCodeInputPanel
-        ref="codeInputRef"
-        :initial-bms-ids="initialBmsIds"
-        :required="true"
-        :recognize-button-plain="true"
-      />
-
-      <el-form-item label="修改方式" required>
-        <el-radio-group v-model="wayOption">
-          <el-radio :value="1">增加天数</el-radio>
-          <el-radio :value="3">减少天数</el-radio>
-          <el-radio :value="2">按日期</el-radio>
-        </el-radio-group>
-      </el-form-item>
-
-      <el-form-item v-if="wayOption === 1 || wayOption === 3" label="天数" required>
-        <el-input-number
-          v-model="days"
-          class="pm-number"
-          :min="1"
-          :max="9999"
-          :precision="0"
-          :controls="false"
-          placeholder="请输入天数"
-        />
-      </el-form-item>
-
-      <el-form-item v-if="wayOption === 2" label="日期" required>
-        <el-date-picker
-          v-model="date"
-          type="date"
-          value-format="YYYY-MM-DD"
-          placeholder="选择日期"
-          style="width: 100%"
-        />
-      </el-form-item>
-    </el-form>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .pm-panel {

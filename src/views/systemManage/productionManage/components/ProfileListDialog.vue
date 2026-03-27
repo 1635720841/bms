@@ -1,3 +1,33 @@
+<template>
+  <div class="profile-list-dialog">
+    <TableSearch
+      :form-item="searchItems"
+      page-name="facProfileList"
+      @query-btn="handleSearch"
+      @reset-btn="handleReset"
+    />
+
+    <div class="profile-list-dialog__header">
+      <el-button type="primary" size="small" @click="handleAdd">新增配置</el-button>
+    </div>
+
+    <pageTable
+      :page="page"
+      :data="list"
+      :columns="columns"
+      :loading="loading"
+      rowkey="id"
+      height="500px"
+      @GetData="GetData"
+    >
+      <template #action="{ row }">
+        <el-button type="primary" size="small" @click="handleEdit(row)">
+          修改
+        </el-button>
+      </template>
+    </pageTable>
+  </div>
+</template>
 <script setup lang="ts">
 import { h, ref } from "vue";
 import { getFacProfileListReq } from "@/api/bms";
@@ -122,36 +152,6 @@ function handleEdit(row: BmsFacProfileItem) {
 }
 </script>
 
-<template>
-  <div class="profile-list-dialog">
-    <TableSearch
-      :form-item="searchItems"
-      page-name="facProfileList"
-      @query-btn="handleSearch"
-      @reset-btn="handleReset"
-    />
-
-    <div class="profile-list-dialog__header">
-      <el-button type="primary" size="small" @click="handleAdd">新增配置</el-button>
-    </div>
-
-    <pageTable
-      :page="page"
-      :data="list"
-      :columns="columns"
-      :loading="loading"
-      rowkey="id"
-      height="500px"
-      @GetData="GetData"
-    >
-      <template #action="{ row }">
-        <el-button type="primary" size="small" @click="handleEdit(row)">
-          修改
-        </el-button>
-      </template>
-    </pageTable>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .profile-list-dialog {

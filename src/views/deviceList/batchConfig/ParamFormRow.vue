@@ -1,3 +1,29 @@
+<template>
+  <el-row :gutter="16">
+    <el-col v-for="field in fields" :key="field.fieldKey" :span="field.span ?? 12">
+      <el-form-item :label="field.label">
+        <el-select
+          :model-value="field.modelValue"
+          filterable
+          allow-create
+          default-first-option
+          placeholder="请选择或输入"
+          style="width: 100%"
+          :loading="field.loading"
+          @update:model-value="handleUpdate(field.fieldKey, $event)"
+        >
+          <el-option
+            v-for="opt in field.options"
+            :key="String(opt.value)"
+            :label="opt.label"
+            :value="opt.value"
+          />
+        </el-select>
+      </el-form-item>
+    </el-col>
+  </el-row>
+</template>
+
 <script setup lang="ts">
 defineOptions({ name: "ParamFormRow" });
 
@@ -30,29 +56,4 @@ function handleUpdate(fieldKey: string, value: number | string) {
 }
 </script>
 
-<template>
-  <el-row :gutter="16">
-    <el-col v-for="field in fields" :key="field.fieldKey" :span="field.span ?? 12">
-      <el-form-item :label="field.label">
-        <el-select
-          :model-value="field.modelValue"
-          filterable
-          allow-create
-          default-first-option
-          placeholder="请选择或输入"
-          style="width: 100%"
-          :loading="field.loading"
-          @update:model-value="handleUpdate(field.fieldKey, $event)"
-        >
-          <el-option
-            v-for="opt in field.options"
-            :key="String(opt.value)"
-            :label="opt.label"
-            :value="opt.value"
-          />
-        </el-select>
-      </el-form-item>
-    </el-col>
-  </el-row>
-</template>
 

@@ -1,3 +1,34 @@
+<template>
+  <div v-loading="submitting" class="pm-panel">
+    <el-form label-width="100px" class="pm-form">
+      <DeviceCodeInputPanel
+        ref="codeInputRef"
+        :initial-bms-ids="initialBmsIds"
+        :recognize-button-plain="true"
+      />
+
+      <el-form-item label="主服务器" required>
+        <el-select
+          v-model="selectedServerValue"
+          class="pm-select"
+          placeholder="请选择服务器"
+          filterable
+          :loading="loadingList"
+        >
+          <el-option v-for="it in serverList" :key="it.value" :label="it.title" :value="it.value" />
+        </el-select>
+      </el-form-item>
+
+      <el-form-item label="离线任务">
+        <el-radio-group v-model="offlineTask">
+          <el-radio :value="0">仅配置在线设备</el-radio>
+          <el-radio :value="1">配置所有设备（包括离线设备，系统配置离线任务，待设备上线后执行）</el-radio>
+        </el-radio-group>
+      </el-form-item>
+    </el-form>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -131,37 +162,6 @@ defineExpose({
   submit
 });
 </script>
-
-<template>
-  <div v-loading="submitting" class="pm-panel">
-    <el-form label-width="100px" class="pm-form">
-      <DeviceCodeInputPanel
-        ref="codeInputRef"
-        :initial-bms-ids="initialBmsIds"
-        :recognize-button-plain="true"
-      />
-
-      <el-form-item label="主服务器" required>
-        <el-select
-          v-model="selectedServerValue"
-          class="pm-select"
-          placeholder="请选择服务器"
-          filterable
-          :loading="loadingList"
-        >
-          <el-option v-for="it in serverList" :key="it.value" :label="it.title" :value="it.value" />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item label="离线任务">
-        <el-radio-group v-model="offlineTask">
-          <el-radio :value="0">仅配置在线设备</el-radio>
-          <el-radio :value="1">配置所有设备（包括离线设备，系统配置离线任务，待设备上线后执行）</el-radio>
-        </el-radio-group>
-      </el-form-item>
-    </el-form>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .pm-panel {

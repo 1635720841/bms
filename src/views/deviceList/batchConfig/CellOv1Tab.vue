@@ -1,3 +1,82 @@
+<template>
+  <div class="cell-ov1-tab">
+    <el-row :gutter="16">
+      <el-col :span="14">
+        <el-form-item label="触发门限(mV)">
+          <el-select
+            v-model="form.cell_OV1T"
+            filterable
+            allow-create
+            default-first-option
+            placeholder="请选择或输入"
+            style="width: 100%"
+            :loading="props.loadingRanges"
+          >
+            <el-option v-for="opt in ov1tOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+          </el-select>
+        </el-form-item>
+      </el-col>
+      <el-col :span="10">
+        <el-form-item label="延时(S)">
+          <el-select
+            v-model="form.cell_OV1D"
+            filterable
+            allow-create
+            default-first-option
+            placeholder="请选择或输入"
+            style="width: 100%"
+            :loading="props.loadingRanges"
+          >
+            <el-option v-for="opt in ov1dOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+          </el-select>
+        </el-form-item>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="16">
+      <el-col :span="14">
+        <el-form-item label="恢复门限(mV)">
+          <el-select
+            v-model="form.cell_OVR1T"
+            filterable
+            allow-create
+            default-first-option
+            placeholder="请选择或输入"
+            style="width: 100%"
+            :loading="props.loadingRanges"
+          >
+            <el-option v-for="opt in ovr1tOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+          </el-select>
+        </el-form-item>
+      </el-col>
+      <el-col :span="10">
+        <el-form-item label="延时(S)">
+          <el-select
+            v-model="form.cell_OVR1D"
+            filterable
+            allow-create
+            default-first-option
+            placeholder="请选择或输入"
+            style="width: 100%"
+            :loading="props.loadingRanges"
+          >
+            <el-option v-for="opt in ovr1dOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+          </el-select>
+        </el-form-item>
+      </el-col>
+    </el-row>
+
+    <el-form-item label="使能开关">
+      <el-radio-group v-model="form.cell_OVRP1flag">
+        <el-radio :value="1">开</el-radio>
+        <el-radio :value="0">关</el-radio>
+      </el-radio-group>
+    </el-form-item>
+
+    <div class="hint">触发门限需大于恢复门限</div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { computed, reactive, watch } from "vue";
 import type { BmsRangesMap } from "@/api/bms/types";
@@ -83,84 +162,6 @@ function getPayload() {
 defineExpose({ form, validate, getPayload });
 </script>
 
-<template>
-  <div class="cell-ov1-tab">
-    <el-row :gutter="16">
-      <el-col :span="14">
-        <el-form-item label="触发门限(mV)">
-          <el-select
-            v-model="form.cell_OV1T"
-            filterable
-            allow-create
-            default-first-option
-            placeholder="请选择或输入"
-            style="width: 100%"
-            :loading="props.loadingRanges"
-          >
-            <el-option v-for="opt in ov1tOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-          </el-select>
-        </el-form-item>
-      </el-col>
-      <el-col :span="10">
-        <el-form-item label="延时(S)">
-          <el-select
-            v-model="form.cell_OV1D"
-            filterable
-            allow-create
-            default-first-option
-            placeholder="请选择或输入"
-            style="width: 100%"
-            :loading="props.loadingRanges"
-          >
-            <el-option v-for="opt in ov1dOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-          </el-select>
-        </el-form-item>
-      </el-col>
-    </el-row>
-
-    <el-row :gutter="16">
-      <el-col :span="14">
-        <el-form-item label="恢复门限(mV)">
-          <el-select
-            v-model="form.cell_OVR1T"
-            filterable
-            allow-create
-            default-first-option
-            placeholder="请选择或输入"
-            style="width: 100%"
-            :loading="props.loadingRanges"
-          >
-            <el-option v-for="opt in ovr1tOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-          </el-select>
-        </el-form-item>
-      </el-col>
-      <el-col :span="10">
-        <el-form-item label="延时(S)">
-          <el-select
-            v-model="form.cell_OVR1D"
-            filterable
-            allow-create
-            default-first-option
-            placeholder="请选择或输入"
-            style="width: 100%"
-            :loading="props.loadingRanges"
-          >
-            <el-option v-for="opt in ovr1dOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-          </el-select>
-        </el-form-item>
-      </el-col>
-    </el-row>
-
-    <el-form-item label="使能开关">
-      <el-radio-group v-model="form.cell_OVRP1flag">
-        <el-radio :value="1">开</el-radio>
-        <el-radio :value="0">关</el-radio>
-      </el-radio-group>
-    </el-form-item>
-
-    <div class="hint">触发门限需大于恢复门限</div>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .cell-ov1-tab {

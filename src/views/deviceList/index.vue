@@ -1,3 +1,78 @@
+<template>
+  <div class="bms-device-list">
+    <!-- 左侧组织树 -->
+    <OrgTreePanel @change="handleOrgChange" @clear="handleOrgClear" />
+
+    <!-- 右侧设备列表 -->
+    <div class="bms-device-content">
+      <div class="bms-card">
+        <div class="bms-card__head">
+          <div class="bms-card__title-wrapper">
+            <div class="bms-card__title">设备列表</div>
+            <div v-if="selectedOrgName" class="bms-card__org-name">
+              <!-- <span class="org-name-label">当前公司：</span> -->
+              <span class="org-name-value">{{ selectedOrgName }}</span>
+            </div>
+          </div>
+          <div v-if="viewMode === 'all'" class="bms-card__actions">
+            <el-button v-if="canUseBatchConfig" type="primary" @click="openBatchConfig">
+              批量配置
+            </el-button>
+          </div>
+        </div>
+
+        <!-- 视图模式切换：全部 / 离线设备 -->
+        <div class="bms-view-switch">
+          <el-button :type="viewMode === 'all' ? 'primary' : 'default'" plain @click="handleViewModeChange('all')">
+            全部
+          </el-button>
+          <el-button :type="viewMode === 'offline' ? 'primary' : 'default'" plain
+            @click="handleViewModeChange('offline')">
+            离线设备
+          </el-button>
+        </div>
+
+        <TableSearch v-if="viewMode === 'all'" :form-item="searchItems" page-name="deviceList" @query-btn="handleSearch"
+          @reset-btn="handleReset" />
+
+        <!-- 离线时长快捷筛选（横线 Tab 样式） -->
+        <div v-if="viewMode === 'offline'" class="offline-filter">
+          <span class="offline-filter__label">离线时长：</span>
+          <div class="offline-filter__group">
+            <el-button v-for="item in offlineTimeOptions" :key="item.value === null ? 'all' : item.value" size="small"
+              :class="['offline-filter__btn', { 'is-active': offlineTime === item.value }]"
+              @click="handleOfflineTimeClick(item.value)">
+              {{ item.label }}
+            </el-button>
+          </div>
+        </div>
+
+        <pageTable :page="page" :data="list" :columns="tableColumns" :loading="loading" rowkey="bmsId"
+          height="calc(100vh - 370px)" @GetData="GetData" @selectionChange="handleSelectionChange">
+          <template #bmsId="{ row }">
+            <el-button link class="bms-op-link" @click.stop="openDetail(row)">
+              {{ row?.bmsId || "-" }}
+            </el-button>
+          </template>
+          <template #cz="{ row }">
+            <el-button link class="bms-op-link" @click="openDetail(row)">
+              详情
+            </el-button>
+            <el-divider v-if="viewMode === 'all'" direction="vertical" />
+            <el-button v-if="viewMode === 'all'" link class="bms-op-link" @click="goParamConfig(row)">
+              参数配置
+            </el-button>
+          </template>
+        </pageTable>
+      </div>
+    </div>
+    ·
+    <BatchConfigDialog v-model="batchConfigVisible" :initial-bms-ids="batchBmsIds" @success="GetData" />
+
+    <ParamConfigDialog v-model="paramConfigVisible" :bms-id="paramConfigBmsId" @success="GetData" />
+  </div>
+</template>
+
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
@@ -294,19 +369,19 @@ const searchItems = [
 ];
 
 const columns = [
-  { type: "selection", width: 80, align: "center" as const, fixed: "left" as const },
-  { label: "BMS编码", prop: "bmsId", width: 170, slots: "bmsId" },
-  { label: "串数", prop: "cellCnt", width: 90, align: "center" as const },
-  { label: "材料", prop: "cellMat", width: 90, align: "center" as const, selectData: cell_mat_dict },
-  { label: "容量(Ah)", prop: "capactiyD", width: 120, align: "center" as const },
-  { label: "状态", prop: "online", width: 90, align: "center" as const, selectData: online_status_dict },
+  { type: "selection", width: 60, align: "center" as const, fixed: "left" as const },
+  { label: "BMS编码", prop: "bmsId", minWidth: 125, slots: "bmsId" },
+  { label: "串数", prop: "cellCnt", minWidth: 40, align: "center" as const },
+  { label: "材料", prop: "cellMat", minWidth: 50, align: "center" as const, selectData: cell_mat_dict },
+  { label: "容量(Ah)", prop: "capactiyD", minWidth: 70, align: "center" as const },
+  { label: "状态", prop: "online", minWidth: 50, align: "center" as const, selectData: online_status_dict },
   { label: "最后在线时间", prop: "lastDataTimeText", width: 170 },
-  { label: "离线时长", prop: "offlineDuration", width: 130, align: "center" as const },
-  { label: "服务到期时间", prop: "srvEndTime", width: 165 },
-  { label: "服务价格", prop: "srvFee", width: 120 },
-  { label: "发货时间", prop: "outTime", width: 165 },
-  { label: "激活时间", prop: "activeTime", width: 165 },
-  { label: "最近续费时间", prop: "updateTime", width: 165 },
+  { label: "离线时长", prop: "offlineDuration", minWidth: 130, align: "center" as const },
+  { label: "服务到期时间", prop: "srvEndTime", minWidth: 155 },
+  { label: "服务价格", prop: "srvFee", minWidth: 80 },
+  { label: "发货时间", prop: "outTime", width: 155 },
+  { label: "激活时间", prop: "activeTime", minWidth: 155 },
+  { label: "最近续费时间", prop: "updateTime", minWidth: 155 },
   { label: "BT码", prop: "btCode", minWidth: 225 },
   { label: "三方后台", prop: "tServer", minWidth: 170 },
   { label: "操作", prop: "cz", width: 160, align: "center" as const, slots: "cz", fixed: "right" as const }
@@ -343,10 +418,10 @@ function handleSelectionChange(rows: BmsDeviceItem[]) {
 
 function openBatchConfig() {
   const bmsIds = (selectedRows.value ?? []).map(it => it.bmsId).filter(Boolean);
-  if (bmsIds.length === 0) {
-    ElMessage.warning("请先在表格中勾选要批量配置的设备");
-    return;
-  }
+  // if (bmsIds.length === 0) {
+  //   ElMessage.warning("请先在表格中勾选要批量配置的设备");
+  //   return;
+  // }
   batchBmsIds.value = bmsIds;
   batchConfigVisible.value = true;
 }
@@ -354,108 +429,19 @@ function openBatchConfig() {
 // pageTable 挂载时会自动触发 @GetData，无需 onMounted 手动加载
 </script>
 
-<template>
-  <div class="bms-device-list">
-    <!-- 左侧组织树 -->
-    <OrgTreePanel @change="handleOrgChange" @clear="handleOrgClear" />
-
-    <!-- 右侧设备列表 -->
-    <div class="bms-device-content">
-      <div class="bms-card">
-        <div class="bms-card__head">
-          <div class="bms-card__title-wrapper">
-            <div class="bms-card__title">设备列表</div>
-            <div v-if="selectedOrgName" class="bms-card__org-name">
-              <!-- <span class="org-name-label">当前公司：</span> -->
-              <span class="org-name-value">{{ selectedOrgName }}</span>
-            </div>
-          </div>
-          <div v-if="viewMode === 'all'" class="bms-card__actions">
-            <el-button v-if="canUseBatchConfig" type="primary"
-              @click="openBatchConfig">
-              批量配置
-            </el-button>
-          </div>
-        </div>
-
-        <!-- 视图模式切换：全部 / 离线设备 -->
-        <div class="bms-view-switch">
-          <el-button
-            :type="viewMode === 'all' ? 'primary' : 'default'"
-            plain
-            @click="handleViewModeChange('all')"
-          >
-            全部
-          </el-button>
-          <el-button
-            :type="viewMode === 'offline' ? 'primary' : 'default'"
-            plain
-            @click="handleViewModeChange('offline')"
-          >
-            离线设备
-          </el-button>
-        </div>
-
-        <TableSearch
-          v-if="viewMode === 'all'"
-          :form-item="searchItems"
-          page-name="deviceList"
-          @query-btn="handleSearch"
-          @reset-btn="handleReset"
-        />
-
-        <!-- 离线时长快捷筛选（横线 Tab 样式） -->
-        <div v-if="viewMode === 'offline'" class="offline-filter">
-          <span class="offline-filter__label">离线时长：</span>
-          <div class="offline-filter__group">
-            <el-button
-              v-for="item in offlineTimeOptions"
-              :key="item.value === null ? 'all' : item.value"
-              size="small"
-              :class="['offline-filter__btn', { 'is-active': offlineTime === item.value }]"
-              @click="handleOfflineTimeClick(item.value)"
-            >
-              {{ item.label }}
-            </el-button>
-          </div>
-        </div>
-
-        <pageTable :page="page" :data="list" :columns="tableColumns" :loading="loading" rowkey="bmsId"
-          height="calc(100vh - 370px)" @GetData="GetData" @selectionChange="handleSelectionChange">
-          <template #bmsId="{ row }">
-            <el-button link class="bms-op-link" @click.stop="openDetail(row)">
-              {{ row?.bmsId || "-" }}
-            </el-button>
-          </template>
-          <template #cz="{ row }">
-            <el-button link class="bms-op-link" @click="openDetail(row)">
-              详情
-            </el-button>
-            <el-divider v-if="viewMode === 'all'" direction="vertical" />
-            <el-button v-if="viewMode === 'all'" link class="bms-op-link" @click="goParamConfig(row)">
-              参数配置
-            </el-button>
-          </template>
-        </pageTable>
-      </div>
-    </div>
-·
-    <BatchConfigDialog v-model="batchConfigVisible" :initial-bms-ids="batchBmsIds" @success="GetData" />
-
-    <ParamConfigDialog v-model="paramConfigVisible" :bms-id="paramConfigBmsId" @success="GetData" />
-  </div>
-</template>
-
 <style scoped lang="scss">
-:deep(.el-button+.el-button){
+:deep(.el-button+.el-button) {
   margin-left: 0 !important;
-  .el-button--small{
+
+  .el-button--small {
     padding: 0 10px !important;
   }
 }
-:deep(.el-button--small){
+
+:deep(.el-button--small) {
   padding: 0 3px !important;
 }
+
 .bms-device-list {
   display: flex;
   gap: 16px;
@@ -505,7 +491,8 @@ function openBatchConfig() {
   display: flex;
   gap: 8px;
   margin: 0 20px 12px 0;
-  .el-button{
+
+  .el-button {
     width: 80px;
     border-radius: 30px;
   }

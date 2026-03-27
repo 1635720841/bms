@@ -1,3 +1,49 @@
+
+<template>
+  <div class="user-manage">
+    <template v-if="canList">
+      <div class="user-manage__header">
+        <div class="header-title">用户管理</div>
+        <div class="header-actions">
+          <el-button v-if="mngUsr.add" type="primary" @click="openAddUser">
+            添加账号
+          </el-button>
+        </div>
+      </div>
+      <div class="user-manage-card">
+        <TableSearch :form-item="searchItems" page-name="userManage" @query-btn="handleSearch"
+          @reset-btn="handleReset" />
+
+        <pageTable notauto :page="page" :data="list" :columns="columns" :loading="loading" rowkey="usr_id"
+          height="calc(100vh - 400px)" @GetData="GetData">
+          <template #cz="{ row }">
+            <el-button v-if="mngUsr.update" link class="bms-op-link" @click="openEditUser(row)">
+              修改信息
+            </el-button>
+            <el-button v-if="mngUsr.pwdchg" link class="bms-op-link" @click="handleResetPassword(row)">
+              重置密码
+            </el-button>
+          </template>
+        </pageTable>
+      </div>
+
+      <!-- 添加账号弹框 -->
+      <el-dialog v-model="addUserVisible" title="添加账号" width="620px" destroy-on-close :close-on-click-modal="false"
+        append-to-body>
+        <AddUserDialog @success="handleAddUserSuccess" @cancel="addUserVisible = false" />
+      </el-dialog>
+
+      <!-- 修改信息弹框 -->
+      <el-dialog v-model="editUserVisible" title="修改信息" width="620px" destroy-on-close :close-on-click-modal="false"
+        append-to-body>
+        <EditUserDialog :user="currentEditUser" @success="handleEditUserSuccess" @cancel="editUserVisible = false" />
+      </el-dialog>
+    </template>
+    <div v-else class="no-permission-tip">
+      <el-empty description="当前账号无查看用户列表权限" />
+    </div>
+  </div>
+</template>
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -150,52 +196,6 @@ async function handleResetPassword(row: UserItem) {
 
 // 数据加载由 useTableWithForm hook 自动处理
 </script>
-
-<template>
-  <div class="user-manage">
-    <template v-if="canList">
-      <div class="user-manage__header">
-        <div class="header-title">用户管理</div>
-        <div class="header-actions">
-          <el-button v-if="mngUsr.add" type="primary" @click="openAddUser">
-            添加账号
-          </el-button>
-        </div>
-      </div>
-      <div class="user-manage-card">
-        <TableSearch :form-item="searchItems" page-name="userManage" @query-btn="handleSearch"
-          @reset-btn="handleReset" />
-
-        <pageTable notauto :page="page" :data="list" :columns="columns" :loading="loading" rowkey="usr_id"
-          height="calc(100vh - 400px)" @GetData="GetData">
-          <template #cz="{ row }">
-            <el-button v-if="mngUsr.update" link class="bms-op-link" @click="openEditUser(row)">
-              修改信息
-            </el-button>
-            <el-button v-if="mngUsr.pwdchg" link class="bms-op-link" @click="handleResetPassword(row)">
-              重置密码
-            </el-button>
-          </template>
-        </pageTable>
-      </div>
-
-      <!-- 添加账号弹框 -->
-      <el-dialog v-model="addUserVisible" title="添加账号" width="620px" destroy-on-close :close-on-click-modal="false"
-        append-to-body>
-        <AddUserDialog @success="handleAddUserSuccess" @cancel="addUserVisible = false" />
-      </el-dialog>
-
-      <!-- 修改信息弹框 -->
-      <el-dialog v-model="editUserVisible" title="修改信息" width="620px" destroy-on-close :close-on-click-modal="false"
-        append-to-body>
-        <EditUserDialog :user="currentEditUser" @success="handleEditUserSuccess" @cancel="editUserVisible = false" />
-      </el-dialog>
-    </template>
-    <div v-else class="no-permission-tip">
-      <el-empty description="当前账号无查看用户列表权限" />
-    </div>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .user-manage-card {

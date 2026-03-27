@@ -1,3 +1,110 @@
+<template>
+  <div class="bms-param-config">
+    <div v-loading="loading" class="bms-card">
+      <div class="bms-card__head">
+        <div class="bms-card__title">参数配置</div>
+        <div class="bms-card__sub">
+          <span>设备编码：</span>
+          <span class="mono">{{ bmsId || "-" }}</span>
+        </div>
+        <div class="bms-card__actions">
+          <el-button type="primary" @click="handleQuery">刷新</el-button>
+          <el-button @click="handleBack">返回</el-button>
+        </div>
+      </div>
+
+      <div class="bms-body">
+        <div class="bms-left">
+          <el-scrollbar height="calc(100vh - 260px)">
+            <el-menu
+              :default-active="activeSection"
+              class="bms-menu"
+              @select="activeSection = $event as SectionName"
+            >
+              <el-menu-item
+                v-for="name in sectionList"
+                :key="name"
+                :index="name"
+              >
+                {{ name }}
+              </el-menu-item>
+            </el-menu>
+          </el-scrollbar>
+        </div>
+
+        <div class="bms-right">
+          <el-card class="bms-section-card" shadow="never">
+            <template #header>
+              <div class="section-title">{{ activeSection }}</div>
+            </template>
+
+            <div class="section-content">
+              <template v-if="activeSection === 'BT码设置'">
+                <el-form label-width="110px">
+                  <el-form-item label="BT码">
+                    <el-input v-model="btCodeInput" placeholder="请输入BT码" />
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" @click="handleWriteBtCode">写入</el-button>
+                  </el-form-item>
+                </el-form>
+              </template>
+
+              <template v-else-if="activeSection === '三方后台配置'">
+                <el-form label-width="110px">
+                  <el-form-item label="服务器地址">
+                    <el-select v-model="selectedThirdSrvValue" filterable placeholder="请选择">
+                      <el-option
+                        v-for="it in thirdSrvList"
+                        :key="it.value"
+                        :label="it.title"
+                        :value="it.value"
+                      />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" @click="handleWriteThirdServer">写入</el-button>
+                  </el-form-item>
+                </el-form>
+              </template>
+
+              <template v-else-if="activeSection === '基础参数'">
+                <el-form label-width="110px">
+                  <el-form-item label="电芯材料">
+                    <el-select v-model="basicForm.cell_mat" style="width: 240px">
+                      <el-option :label="getDictLabel(cell_mat_dict, 1)" :value="1" />
+                      <el-option :label="getDictLabel(cell_mat_dict, 2)" :value="2" />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item label="电芯串数">
+                    <el-input-number v-model="basicForm.cell_cnt" :min="1" :max="999" controls-position="right" />
+                  </el-form-item>
+                  <el-form-item label="电芯容量(Ah)">
+                    <div class="row">
+                      <el-input v-model="basicForm.designed_capD" style="width: 240px" placeholder="例如 20.0" />
+                      <span class="muted">0.1Ah：{{ designedCapHint }}</span>
+                    </div>
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" @click="handleWriteBasicParams">写入</el-button>
+                  </el-form-item>
+                </el-form>
+              </template>
+
+              <template v-else>
+                <!-- <div class="hint">
+                  该分组写入接口已在小程序存在（`/bms/api/set/params/...`），
+                  我可以按同样方式继续把此分组字段逐项补齐并接入写入/更新。
+                </div> -->
+              </template>
+            </div>
+          </el-card>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -213,113 +320,6 @@ onMounted(() => {
   if (bmsId.value) handleQuery();
 });
 </script>
-
-<template>
-  <div class="bms-param-config">
-    <div v-loading="loading" class="bms-card">
-      <div class="bms-card__head">
-        <div class="bms-card__title">参数配置</div>
-        <div class="bms-card__sub">
-          <span>设备编码：</span>
-          <span class="mono">{{ bmsId || "-" }}</span>
-        </div>
-        <div class="bms-card__actions">
-          <el-button type="primary" @click="handleQuery">刷新</el-button>
-          <el-button @click="handleBack">返回</el-button>
-        </div>
-      </div>
-
-      <div class="bms-body">
-        <div class="bms-left">
-          <el-scrollbar height="calc(100vh - 260px)">
-            <el-menu
-              :default-active="activeSection"
-              class="bms-menu"
-              @select="activeSection = $event as SectionName"
-            >
-              <el-menu-item
-                v-for="name in sectionList"
-                :key="name"
-                :index="name"
-              >
-                {{ name }}
-              </el-menu-item>
-            </el-menu>
-          </el-scrollbar>
-        </div>
-
-        <div class="bms-right">
-          <el-card class="bms-section-card" shadow="never">
-            <template #header>
-              <div class="section-title">{{ activeSection }}</div>
-            </template>
-
-            <div class="section-content">
-              <template v-if="activeSection === 'BT码设置'">
-                <el-form label-width="110px">
-                  <el-form-item label="BT码">
-                    <el-input v-model="btCodeInput" placeholder="请输入BT码" />
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="handleWriteBtCode">写入</el-button>
-                  </el-form-item>
-                </el-form>
-              </template>
-
-              <template v-else-if="activeSection === '三方后台配置'">
-                <el-form label-width="110px">
-                  <el-form-item label="服务器地址">
-                    <el-select v-model="selectedThirdSrvValue" filterable placeholder="请选择">
-                      <el-option
-                        v-for="it in thirdSrvList"
-                        :key="it.value"
-                        :label="it.title"
-                        :value="it.value"
-                      />
-                    </el-select>
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="handleWriteThirdServer">写入</el-button>
-                  </el-form-item>
-                </el-form>
-              </template>
-
-              <template v-else-if="activeSection === '基础参数'">
-                <el-form label-width="110px">
-                  <el-form-item label="电芯材料">
-                    <el-select v-model="basicForm.cell_mat" style="width: 240px">
-                      <el-option :label="getDictLabel(cell_mat_dict, 1)" :value="1" />
-                      <el-option :label="getDictLabel(cell_mat_dict, 2)" :value="2" />
-                    </el-select>
-                  </el-form-item>
-                  <el-form-item label="电芯串数">
-                    <el-input-number v-model="basicForm.cell_cnt" :min="1" :max="999" controls-position="right" />
-                  </el-form-item>
-                  <el-form-item label="电芯容量(Ah)">
-                    <div class="row">
-                      <el-input v-model="basicForm.designed_capD" style="width: 240px" placeholder="例如 20.0" />
-                      <span class="muted">0.1Ah：{{ designedCapHint }}</span>
-                    </div>
-                  </el-form-item>
-                  <el-form-item>
-                    <el-button type="primary" @click="handleWriteBasicParams">写入</el-button>
-                  </el-form-item>
-                </el-form>
-              </template>
-
-              <template v-else>
-                <!-- <div class="hint">
-                  该分组写入接口已在小程序存在（`/bms/api/set/params/...`），
-                  我可以按同样方式继续把此分组字段逐项补齐并接入写入/更新。
-                </div> -->
-              </template>
-            </div>
-          </el-card>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .bms-param-config {

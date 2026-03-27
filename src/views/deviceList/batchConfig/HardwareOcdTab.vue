@@ -1,16 +1,3 @@
-<script setup lang="ts">
-defineOptions({ name: "HardwareOcdTab" });
-
-const props = defineProps<{
-  /** 硬件级放电过流参数（单位已换算：电流 A，时间 S） */
-  hardwareOcd?: {
-    T?: number;
-    D?: number;
-    RT?: number;
-    RD?: number;
-  };
-}>();
-</script>
 
 <template>
   <div class="hardware-ocd-tab">
@@ -40,6 +27,20 @@ const props = defineProps<{
     </el-row>
   </div>
 </template>
+
+<script setup lang="ts">
+defineOptions({ name: "HardwareOcdTab" });
+
+const props = defineProps<{
+  /** 硬件级放电过流参数（单位已换算：电流 A，时间 S） */
+  hardwareOcd?: {
+    T?: number;
+    D?: number;
+    RT?: number;
+    RD?: number;
+  };
+}>();
+</script>
 
 <style scoped lang="scss">
 .hardware-ocd-tab {

@@ -1,9 +1,97 @@
+
+<template>
+  <div class="all-statics-card">
+    <div class="card-header">
+      <div class="title-wrapper">
+        <div class="title-icon" />
+        <h3 class="card-title">设备状态统计</h3>
+      </div>
+
+      <div class="header-right">
+        <!-- <button class="refresh-btn" type="button" :disabled="dashboardStore.loading" @click="dashboardStore.fetchAllStatics">
+          <svg class="refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 12a9 9 0 1 1-2.64-6.36" stroke-width="2" stroke-linecap="round" />
+            <path d="M21 3v7h-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span>{{ dashboardStore.loading ? "刷新中" : "刷新" }}</span>
+        </button> -->
+
+        <div v-if="updateTimeText" class="update-time">
+          <svg class="time-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10" stroke-width="2" />
+            <path d="M12 6v6l4 2" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <span>{{ updateTimeText }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- <div v-if="dashboardStore.errorMessage" class="error-row">
+      <span class="error-text">{{ dashboardStore.errorMessage }}</span>
+      <button class="retry-btn" type="button" @click="dashboardStore.fetchAllStatics">重试</button>
+    </div> -->
+
+    <div class="card-body" :class="{ 'is-fullscreen': isFullscreen }">
+      <div class="kpi-row">
+        <!-- <div class="kpi-item kpi-total" title="当前异常总量（离线 + 到期 + 无定位）">
+          <div class="kpi-label">当前异常</div>
+          <div class="kpi-value">{{ nowAbnormalTotal }}<span class="kpi-unit">台</span></div>
+        </div> -->
+
+        <div class="kpi-item kpi-offline">
+          <div class="kpi-label">当前离线</div>
+          <div class="kpi-value">{{ nowOffline }}<span class="kpi-unit">台</span></div>
+        </div>
+
+        <div class="kpi-item kpi-expired">
+          <div class="kpi-label">当前到期</div>
+          <div class="kpi-value">{{ nowExpired }}<span class="kpi-unit">台</span></div>
+        </div>
+
+        <div class="kpi-item kpi-nogps">
+          <div class="kpi-label">当前无定位</div>
+          <div class="kpi-value">{{ nowNogps }}<span class="kpi-unit">台</span></div>
+        </div>
+
+        <BocDiscOvercurrentDialogModule :value="nowBocDisc" />
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-wrap">
+          <div class="chart-scanlines" />
+          <div class="chart-corners">
+            <i class="corner corner-tl" />
+            <i class="corner corner-tr" />
+            <i class="corner corner-bl" />
+            <i class="corner corner-br" />
+          </div>
+          <div ref="chartNogpsRef" class="chart-container" />
+        </div>
+
+        <div class="chart-wrap">
+          <div class="chart-scanlines" />
+          <div class="chart-corners">
+            <i class="corner corner-tl" />
+            <i class="corner corner-tr" />
+            <i class="corner corner-bl" />
+            <i class="corner corner-br" />
+          </div>
+          <div ref="chartOthersRef" class="chart-container" />
+        </div>
+      </div>
+    </div>
+
+    <div class="card-glow" />
+  </div>
+</template>
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useFullscreen } from "@vueuse/core";
 import type { EChartsOption } from "echarts";
 import echarts from "@/plugins/echarts";
 import type { BmsGetAllstaticsRes } from "@/api/bms/types";
 import { dateYMDHMS } from "@/utils/util";
+import BocDiscOvercurrentDialogModule from "./BocDiscOvercurrentDialogModule.vue";
 
 defineOptions({ name: "AllStaticsOverview" });
 
@@ -15,6 +103,8 @@ interface Props {
 
 const props = defineProps<Props>();
 
+const { isFullscreen } = useFullscreen();
+
 const updateTimeText = computed(() => {
   const t = props.allStaticsData?.update_time;
   return typeof t === "number" ? dateYMDHMS(t) : "";
@@ -23,6 +113,7 @@ const updateTimeText = computed(() => {
 const nowOffline = computed(() => pickValue(props.allStaticsData?.offline, "now"));
 const nowExpired = computed(() => pickValue(props.allStaticsData?.expired, "now"));
 const nowNogps = computed(() => pickValue(props.allStaticsData?.nogps, "now"));
+const nowBocDisc = computed(() => pickValue(props.allStaticsData?.bocDisc, "now"));
 const nowAbnormalTotal = computed(() => nowOffline.value + nowExpired.value + nowNogps.value);
 
 type TimeKey = "now" | "day" | "week" | "month";
@@ -33,13 +124,84 @@ function pickValue(source: unknown, key: TimeKey): number {
   return typeof v === "number" ? v : 0;
 }
 
-const chartRef = ref<HTMLDivElement | null>(null);
+const chartNogpsRef = ref<HTMLDivElement | null>(null);
+const chartOthersRef = ref<HTMLDivElement | null>(null);
 type EChartsInstance = ReturnType<typeof echarts.init>;
-let chartInstance: EChartsInstance | null = null;
+let chartNogpsInstance: EChartsInstance | null = null;
+let chartOthersInstance: EChartsInstance | null = null;
+let chartResizeObservers: ResizeObserver[] = [];
+let rafResizeId = 0;
 
-const chartOption = computed<EChartsOption>(() => {
-  // 后端维度含义：day=今日，week=近7天，month=近1月，now=当前
-  const categories = [ "今日", "近7天", "近1月"];
+const baseAxisOption = {
+  axisTick: { show: false },
+  axisLine: { lineStyle: { color: "rgba(88, 166, 255, 0.25)" } },
+  axisLabel: { color: "rgba(230, 237, 243, 0.7)", fontSize: 12 }
+} as const;
+
+const baseValueAxisOption = {
+  type: "value",
+  splitNumber: 4,
+  splitLine: { lineStyle: { color: "rgba(88, 166, 255, 0.12)" } },
+  axisLabel: { color: "rgba(230, 237, 243, 0.6)", fontSize: 12 }
+} as const;
+
+const baseTooltip = {
+  trigger: "axis",
+  axisPointer: { type: "shadow" },
+  backgroundColor: "rgba(15, 23, 42, 0.95)",
+  borderColor: "rgba(88, 166, 255, 0.5)",
+  borderWidth: 1,
+  textStyle: { color: "#e6edf3", fontSize: 12 },
+  valueFormatter: (value: unknown) => (typeof value === "number" ? `${value} 台` : "—")
+} as const;
+
+const chartNogpsOption = computed<EChartsOption>(() => {
+  const categories = ["今日", "近7天", "近1月"];
+  const nogps = [
+    pickValue(props.allStaticsData?.nogps, "day"),
+    pickValue(props.allStaticsData?.nogps, "week"),
+    pickValue(props.allStaticsData?.nogps, "month")
+  ];
+
+  const option: EChartsOption = {
+    backgroundColor: "transparent",
+    grid: { left: 10, right: 10, top: 40, bottom: 4, containLabel: true },
+    tooltip: baseTooltip,
+    legend: {
+      top: 10,
+      left: 10,
+      itemWidth: 12,
+      itemHeight: 6,
+      itemGap: 14,
+      textStyle: { color: "rgba(230, 237, 243, 0.75)", fontSize: 12 }
+    },
+    xAxis: { type: "category", data: categories, boundaryGap: true, ...baseAxisOption },
+    yAxis: baseValueAxisOption,
+    series: [
+      {
+        name: "无定位",
+        type: "bar",
+        data: nogps,
+        barMaxWidth: 18,
+        itemStyle: {
+          borderRadius: [6, 6, 0, 0],
+          color: {
+            type: "linear",
+            x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [
+              { offset: 0, color: "rgba(0, 217, 255, 0.95)" },
+              { offset: 1, color: "rgba(0, 217, 255, 0.18)" }
+            ]
+          }
+        }
+      }
+    ]
+  };
+  return option;
+});
+
+const chartOthersOption = computed<EChartsOption>(() => {
+  const categories = ["今日", "近7天", "近1月"];
   const offline = [
     pickValue(props.allStaticsData?.offline, "day"),
     pickValue(props.allStaticsData?.offline, "week"),
@@ -50,46 +212,26 @@ const chartOption = computed<EChartsOption>(() => {
     pickValue(props.allStaticsData?.expired, "week"),
     pickValue(props.allStaticsData?.expired, "month")
   ];
-  const nogps = [
-    pickValue(props.allStaticsData?.nogps, "day"),
-    pickValue(props.allStaticsData?.nogps, "week"),
-    pickValue(props.allStaticsData?.nogps, "month")
+  const bocDisc = [
+    pickValue(props.allStaticsData?.bocDisc, "day"),
+    pickValue(props.allStaticsData?.bocDisc, "week"),
+    pickValue(props.allStaticsData?.bocDisc, "month")
   ];
 
   const option: EChartsOption = {
     backgroundColor: "transparent",
-    grid: { left: 10, right: 10, top: 52, bottom: 12, containLabel: true },
-    tooltip: {
-      trigger: "axis",
-      axisPointer: { type: "shadow" },
-      backgroundColor: "rgba(15, 23, 42, 0.95)",
-      borderColor: "rgba(88, 166, 255, 0.5)",
-      borderWidth: 1,
-      textStyle: { color: "#e6edf3", fontSize: 12 },
-      valueFormatter: value => (typeof value === "number" ? `${value} 台` : "—")
-    },
+    grid: { left: 10, right: 10, top: 40, bottom: 4, containLabel: true },
+    tooltip: baseTooltip,
     legend: {
-      top: 10,
+      top: 0,
       left: 10,
       itemWidth: 12,
       itemHeight: 6,
       itemGap: 14,
       textStyle: { color: "rgba(230, 237, 243, 0.75)", fontSize: 12 }
     },
-    xAxis: {
-      type: "category",
-      data: categories,
-      axisTick: { show: false },
-      axisLine: { lineStyle: { color: "rgba(88, 166, 255, 0.25)" } },
-      axisLabel: { color: "rgba(230, 237, 243, 0.7)", fontSize: 12 },
-      boundaryGap: true
-    },
-    yAxis: {
-      type: "value",
-      splitNumber: 4,
-      splitLine: { lineStyle: { color: "rgba(88, 166, 255, 0.12)" } },
-      axisLabel: { color: "rgba(230, 237, 243, 0.6)", fontSize: 12 }
-     },
+    xAxis: { type: "category", data: categories, boundaryGap: true, ...baseAxisOption },
+    yAxis: baseValueAxisOption,
     series: [
       {
         name: "离线",
@@ -126,9 +268,9 @@ const chartOption = computed<EChartsOption>(() => {
         }
       },
       {
-        name: "无定位",
+        name: "放电过流",
         type: "bar",
-        data: nogps,
+        data: bocDisc,
         barMaxWidth: 18,
         itemStyle: {
           borderRadius: [6, 6, 0, 0],
@@ -136,8 +278,8 @@ const chartOption = computed<EChartsOption>(() => {
             type: "linear",
             x: 0, y: 0, x2: 0, y2: 1,
             colorStops: [
-              { offset: 0, color: "rgba(0, 217, 255, 0.95)" },
-              { offset: 1, color: "rgba(0, 217, 255, 0.18)" }
+              { offset: 0, color: "rgba(255, 140, 0, 0.95)" },
+              { offset: 1, color: "rgba(255, 140, 0, 0.18)" }
             ]
           }
         }
@@ -148,112 +290,57 @@ const chartOption = computed<EChartsOption>(() => {
   return option;
 });
 
-function initChart() {
-  const el = chartRef.value;
+function safeInitChart(el: HTMLDivElement | null): EChartsInstance | null {
+  if (!el) return null;
+  return echarts.init(el);
+}
+
+function bindResize(el: HTMLDivElement | null, instanceGetter: () => EChartsInstance | null) {
   if (!el) return;
-  chartInstance = echarts.init(el);
-  chartInstance.setOption(chartOption.value, true);
-}
-
-function updateChart() {
-  if (!chartInstance) return;
-  chartInstance.setOption(chartOption.value, true);
-}
-
-function resizeChart() {
-  chartInstance?.resize();
+  const ro = new ResizeObserver(() => {
+    if (rafResizeId) cancelAnimationFrame(rafResizeId);
+    rafResizeId = requestAnimationFrame(() => instanceGetter()?.resize());
+  });
+  ro.observe(el);
+  chartResizeObservers.push(ro);
 }
 
 onMounted(() => {
-  initChart();
-  window.addEventListener("resize", resizeChart);
+  chartNogpsInstance = safeInitChart(chartNogpsRef.value);
+  chartOthersInstance = safeInitChart(chartOthersRef.value);
+
+  chartNogpsInstance?.setOption(chartNogpsOption.value, true);
+  chartOthersInstance?.setOption(chartOthersOption.value, true);
+
+  requestAnimationFrame(() => {
+    chartNogpsInstance?.resize();
+    chartOthersInstance?.resize();
+  });
+
+  bindResize(chartNogpsRef.value, () => chartNogpsInstance);
+  bindResize(chartOthersRef.value, () => chartOthersInstance);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", resizeChart);
-  if (chartInstance) {
-    chartInstance.dispose();
-    chartInstance = null;
-  }
+  if (rafResizeId) cancelAnimationFrame(rafResizeId);
+  rafResizeId = 0;
+  chartResizeObservers.forEach(ro => ro.disconnect());
+  chartResizeObservers = [];
+  chartNogpsInstance?.dispose();
+  chartOthersInstance?.dispose();
+  chartNogpsInstance = null;
+  chartOthersInstance = null;
 });
 
 watch(
   () => props.allStaticsData,
-  () => updateChart(),
-  { deep: true }
+  () => {
+    chartNogpsInstance?.setOption(chartNogpsOption.value, true);
+    chartOthersInstance?.setOption(chartOthersOption.value, true);
+  },
+  { deep: false }
 );
 </script>
-
-<template>
-  <div class="all-statics-card">
-    <div class="card-header">
-      <div class="title-wrapper">
-        <div class="title-icon" />
-        <h3 class="card-title">设备状态统计</h3>
-      </div>
-
-      <div class="header-right">
-        <!-- <button class="refresh-btn" type="button" :disabled="dashboardStore.loading" @click="dashboardStore.fetchAllStatics">
-          <svg class="refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M21 12a9 9 0 1 1-2.64-6.36" stroke-width="2" stroke-linecap="round" />
-            <path d="M21 3v7h-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-          <span>{{ dashboardStore.loading ? "刷新中" : "刷新" }}</span>
-        </button> -->
-
-        <div v-if="updateTimeText" class="update-time">
-          <svg class="time-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="12" cy="12" r="10" stroke-width="2" />
-            <path d="M12 6v6l4 2" stroke-width="2" stroke-linecap="round" />
-          </svg>
-          <span>{{ updateTimeText }}</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- <div v-if="dashboardStore.errorMessage" class="error-row">
-      <span class="error-text">{{ dashboardStore.errorMessage }}</span>
-      <button class="retry-btn" type="button" @click="dashboardStore.fetchAllStatics">重试</button>
-    </div> -->
-
-    <div class="card-body">
-      <div class="kpi-row">
-        <div class="kpi-item kpi-total" title="当前异常总量（离线 + 到期 + 无定位）">
-          <div class="kpi-label">当前异常</div>
-          <div class="kpi-value">{{ nowAbnormalTotal }}<span class="kpi-unit">台</span></div>
-        </div>
-
-        <div class="kpi-item kpi-offline">
-          <div class="kpi-label">离线</div>
-          <div class="kpi-value">{{ nowOffline }}<span class="kpi-unit">台</span></div>
-        </div>
-
-        <div class="kpi-item kpi-expired">
-          <div class="kpi-label">到期</div>
-          <div class="kpi-value">{{ nowExpired }}<span class="kpi-unit">台</span></div>
-        </div>
-
-        <div class="kpi-item kpi-nogps">
-          <div class="kpi-label">无定位</div>
-          <div class="kpi-value">{{ nowNogps }}<span class="kpi-unit">台</span></div>
-        </div>
-      </div>
-
-      <div class="chart-wrap">
-        <div class="chart-scanlines" />
-        <div class="chart-corners">
-          <i class="corner corner-tl" />
-          <i class="corner corner-tr" />
-          <i class="corner corner-bl" />
-          <i class="corner corner-br" />
-        </div>
-        <div ref="chartRef" class="chart-container" />
-      </div>
-    </div>
-
-    <div class="card-glow" />
-  </div>
-</template>
 
 <style scoped lang="scss">
 @keyframes scanMove {
@@ -270,18 +357,31 @@ watch(
   }
 }
 
+.all-statics-card {
+  --card-padding: clamp(12px, 1.1vw, 20px);
+  --text-sm: clamp(12px, 0.85vw, 13px);
+  --text-md: clamp(14px, 1vw, 16px);
+  --text-lg: clamp(16px, 1.1vw, 18px);
+  --chart-min-h: clamp(160px, 22vh, 160px);
+
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .kpi-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: clamp(4px, 1vw, 4px);
+  margin-bottom: clamp(10px, 1vw, 12px);
 }
 
 .kpi-item {
   --kpi-accent-rgb: 0, 217, 255;
   position: relative;
   border-radius: 14px;
-  padding: 10px 10px 9px;
+  padding: clamp(8px, 0.9vw, 10px) clamp(8px, 0.9vw, 10px) clamp(7px, 0.8vw, 9px);
   background:
     radial-gradient(circle at 18% 0%, rgba(var(--kpi-accent-rgb), 0.22) 0%, transparent 55%),
     linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(30, 41, 59, 0.55) 100%);
@@ -341,25 +441,24 @@ watch(
 .kpi-nogps {
   --kpi-accent-rgb: 0, 217, 255;
 }
-
 .kpi-label {
   position: relative;
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: rgba(230, 237, 243, 0.72);
   letter-spacing: 0.6px;
-  margin-bottom: 6px;
+  margin-bottom: clamp(4px, 0.6vw, 6px);
 }
 
 .kpi-value {
   position: relative;
-  font-size: 22px;
+  font-size: clamp(16px, 1.45vw, 16px);
   font-weight: 900;
   line-height: 1;
 }
 
 .kpi-unit {
-  margin-left: 6px;
-  font-size: 12px;
+  margin-left: clamp(4px, 0.5vw, 6px);
+  font-size: var(--text-sm);
   font-weight: 700;
   color: rgba(230, 237, 243, 0.55);
 }
@@ -444,7 +543,7 @@ watch(
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
   border: 1px solid rgba(88, 166, 255, 0.3);
   border-radius: 20px;
-  padding: 20px;
+  padding: var(--card-padding);
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -506,7 +605,7 @@ watch(
 
 .card-title {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 600;
   color: #e6edf3;
   letter-spacing: 0.5px;
@@ -528,7 +627,7 @@ watch(
   border: 1px solid rgba(88, 166, 255, 0.25);
   background: rgba(15, 23, 42, 0.6);
   color: rgba(230, 237, 243, 0.85);
-  font-size: 12px;
+  font-size: var(--text-sm);
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -557,7 +656,7 @@ watch(
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid rgba(88, 166, 255, 0.2);
   border-radius: 10px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: rgba(230, 237, 243, 0.7);
   white-space: nowrap;
 }
@@ -581,7 +680,7 @@ watch(
 }
 
 .error-text {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: rgba(230, 237, 243, 0.9);
 }
 
@@ -591,16 +690,30 @@ watch(
   border: 1px solid rgba(255, 0, 60, 0.35);
   background: rgba(255, 0, 60, 0.12);
   color: #ff6b9d;
-  font-size: 12px;
+  font-size: var(--text-sm);
   cursor: pointer;
 }
 
 .card-body {
   position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.65fr);
+  gap: clamp(10px, 1vw, 12px);
+  flex: 1;
+  min-height: var(--chart-min-h);
 }
 
 .chart-wrap {
   position: relative;
+  flex: 1;
+  min-height: var(--chart-min-h);
   background: radial-gradient(circle at 50% 40%, rgba(0, 217, 255, 0.12) 0%, rgba(10, 14, 23, 0.35) 55%, rgba(10, 14, 23, 0.55) 100%);
   border: 1px solid rgba(88, 166, 255, 0.18);
   border-radius: 16px;
@@ -609,8 +722,19 @@ watch(
 
 .chart-container {
   width: 100%;
-  height: 220px;
+  height: 100%;
+  min-height: 0;
   padding: 4px 6px 0;
+}
+
+@media (max-width: 980px) {
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card-body.is-fullscreen .chart-grid {
+  grid-template-columns: 1fr;
 }
 </style>
 

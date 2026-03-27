@@ -1,3 +1,50 @@
+<template>
+  <div class="bat-uv-tab">
+    <ParamFormRow
+      :fields="[
+        {
+          label: '触发门限(V)',
+          modelValue: form.bat_UVT,
+          options: uvtOptions,
+          loading: props.loadingRanges,
+          fieldKey: 'bat_UVT',
+          span: 14
+        },
+        {
+          label: '延时(S)',
+          modelValue: form.bat_UVD,
+          options: uvdOptions,
+          loading: props.loadingRanges,
+          fieldKey: 'bat_UVD',
+          span: 10
+        }
+      ]"
+      @update:field="handleUpdate"
+    />
+    <ParamFormRow
+      :fields="[
+        {
+          label: '恢复门限(V)',
+          modelValue: form.bat_UVRT,
+          options: uvrtOptions,
+          loading: props.loadingRanges,
+          fieldKey: 'bat_UVRT',
+          span: 14
+        },
+        {
+          label: '延时(S)',
+          modelValue: form.bat_UVRD,
+          options: uvrdOptions,
+          loading: props.loadingRanges,
+          fieldKey: 'bat_UVRD',
+          span: 10
+        }
+      ]"
+      @update:field="handleUpdate"
+    />
+    <div class="hint">触发门限需小于恢复门限</div>
+  </div>
+</template>
 <script setup lang="ts">
 import { computed, reactive, watch } from "vue";
 import type { BmsRangesMap } from "@/api/bms/types";
@@ -107,53 +154,6 @@ function getPayload() {
 defineExpose({ form, validate, getPayload });
 </script>
 
-<template>
-  <div class="bat-uv-tab">
-    <ParamFormRow
-      :fields="[
-        {
-          label: '触发门限(V)',
-          modelValue: form.bat_UVT,
-          options: uvtOptions,
-          loading: props.loadingRanges,
-          fieldKey: 'bat_UVT',
-          span: 14
-        },
-        {
-          label: '延时(S)',
-          modelValue: form.bat_UVD,
-          options: uvdOptions,
-          loading: props.loadingRanges,
-          fieldKey: 'bat_UVD',
-          span: 10
-        }
-      ]"
-      @update:field="handleUpdate"
-    />
-    <ParamFormRow
-      :fields="[
-        {
-          label: '恢复门限(V)',
-          modelValue: form.bat_UVRT,
-          options: uvrtOptions,
-          loading: props.loadingRanges,
-          fieldKey: 'bat_UVRT',
-          span: 14
-        },
-        {
-          label: '延时(S)',
-          modelValue: form.bat_UVRD,
-          options: uvrdOptions,
-          loading: props.loadingRanges,
-          fieldKey: 'bat_UVRD',
-          span: 10
-        }
-      ]"
-      @update:field="handleUpdate"
-    />
-    <div class="hint">触发门限需小于恢复门限</div>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .bat-uv-tab {

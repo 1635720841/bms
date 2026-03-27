@@ -1,3 +1,101 @@
+<template>
+  <div class="add-user-dialog">
+    <el-form
+      ref="formRef"
+      :model="formData"
+      :rules="rules"
+      label-width="100px"
+      label-position="left"
+    >
+      <el-form-item label="所属组织" prop="org_id">
+        <div v-if="formData.org_name" class="org-selected">
+          <span class="org-name">{{ formData.org_name }}</span>
+          <div class="org-actions">
+            <el-button size="small" text type="primary" @click="openOrgSelect">
+              重新选择
+            </el-button>
+            <el-icon class="clear-icon" @click="clearOrg">
+              <Close />
+            </el-icon>
+          </div>
+        </div>
+        <el-button v-else type="primary" plain @click="openOrgSelect">
+          选择组织
+        </el-button>
+      </el-form-item>
+
+      <el-form-item label="登录账号" prop="name">
+        <el-input
+          v-model="formData.name"
+          placeholder="请输入登录账号"
+          maxlength="30"
+          clearable
+        />
+      </el-form-item>
+
+      <el-form-item label="登录密码" prop="password">
+        <el-input
+          v-model="formData.password"
+          type="password"
+          placeholder="请输入登录密码"
+          show-password
+          clearable
+        />
+      </el-form-item>
+
+      <el-form-item label="确认密码" prop="confirmPassword">
+        <el-input
+          v-model="formData.confirmPassword"
+          type="password"
+          placeholder="请再次输入密码"
+          show-password
+          clearable
+        />
+      </el-form-item>
+
+      <el-form-item label="电子邮箱" prop="email">
+        <el-input
+          v-model="formData.email"
+          placeholder="请输入电子邮箱"
+          maxlength="50"
+          clearable
+        />
+      </el-form-item>
+
+      <el-form-item label="手机号码" prop="mobile">
+        <el-input
+          v-model="formData.mobile"
+          placeholder="请输入手机号码"
+          maxlength="11"
+          clearable
+        />
+      </el-form-item>
+
+      <el-form-item label="备注信息" prop="comment">
+        <el-input
+          v-model="formData.comment"
+          type="textarea"
+          placeholder="请输入备注信息"
+          maxlength="100"
+          :rows="3"
+          show-word-limit
+        />
+      </el-form-item>
+    </el-form>
+
+    <div class="dialog-footer">
+      <el-button @click="handleCancel">取消</el-button>
+      <el-button type="primary" :loading="loading" @click="handleSubmit">
+        确定
+      </el-button>
+    </div>
+
+    <OrgSelectDialog
+      v-model="orgSelectVisible"
+      @select="handleOrgSelected"
+    />
+  </div>
+</template>
 <script setup lang="ts">
 import { ref, reactive } from "vue";
 import { ElMessage } from "element-plus";
@@ -118,104 +216,6 @@ function handleCancel() {
 }
 </script>
 
-<template>
-  <div class="add-user-dialog">
-    <el-form
-      ref="formRef"
-      :model="formData"
-      :rules="rules"
-      label-width="100px"
-      label-position="left"
-    >
-      <el-form-item label="所属组织" prop="org_id">
-        <div v-if="formData.org_name" class="org-selected">
-          <span class="org-name">{{ formData.org_name }}</span>
-          <div class="org-actions">
-            <el-button size="small" text type="primary" @click="openOrgSelect">
-              重新选择
-            </el-button>
-            <el-icon class="clear-icon" @click="clearOrg">
-              <Close />
-            </el-icon>
-          </div>
-        </div>
-        <el-button v-else type="primary" plain @click="openOrgSelect">
-          选择组织
-        </el-button>
-      </el-form-item>
-
-      <el-form-item label="登录账号" prop="name">
-        <el-input
-          v-model="formData.name"
-          placeholder="请输入登录账号"
-          maxlength="30"
-          clearable
-        />
-      </el-form-item>
-
-      <el-form-item label="登录密码" prop="password">
-        <el-input
-          v-model="formData.password"
-          type="password"
-          placeholder="请输入登录密码"
-          show-password
-          clearable
-        />
-      </el-form-item>
-
-      <el-form-item label="确认密码" prop="confirmPassword">
-        <el-input
-          v-model="formData.confirmPassword"
-          type="password"
-          placeholder="请再次输入密码"
-          show-password
-          clearable
-        />
-      </el-form-item>
-
-      <el-form-item label="电子邮箱" prop="email">
-        <el-input
-          v-model="formData.email"
-          placeholder="请输入电子邮箱"
-          maxlength="50"
-          clearable
-        />
-      </el-form-item>
-
-      <el-form-item label="手机号码" prop="mobile">
-        <el-input
-          v-model="formData.mobile"
-          placeholder="请输入手机号码"
-          maxlength="11"
-          clearable
-        />
-      </el-form-item>
-
-      <el-form-item label="备注信息" prop="comment">
-        <el-input
-          v-model="formData.comment"
-          type="textarea"
-          placeholder="请输入备注信息"
-          maxlength="100"
-          :rows="3"
-          show-word-limit
-        />
-      </el-form-item>
-    </el-form>
-
-    <div class="dialog-footer">
-      <el-button @click="handleCancel">取消</el-button>
-      <el-button type="primary" :loading="loading" @click="handleSubmit">
-        确定
-      </el-button>
-    </div>
-
-    <OrgSelectDialog
-      v-model="orgSelectVisible"
-      @select="handleOrgSelected"
-    />
-  </div>
-</template>
 
 <style scoped lang="scss">
 .add-user-dialog {

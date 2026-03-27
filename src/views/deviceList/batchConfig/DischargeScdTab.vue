@@ -1,3 +1,24 @@
+<template>
+  <div class="bat-scd-tab">
+    <ParamFormRow :fields="[
+      {
+        label: '触发门限(A)',
+        modelValue: form.bat_SCDT,
+        options: scdtOptions,
+        loading: props.loadingRanges,
+        fieldKey: 'bat_SCDT'
+      },
+      {
+        label: '延时(us)',
+        modelValue: form.bat_SCDD,
+        options: scddOptions,
+        loading: props.loadingRanges,
+        fieldKey: 'bat_SCDD'
+      }
+    ]" @update:field="handleUpdate" />
+  </div>
+</template>
+
 <script setup lang="ts">
 import { computed, reactive, watch } from "vue";
 import type { BmsRangesMap } from "@/api/bms/types";
@@ -88,29 +109,6 @@ function getPayload() {
 defineExpose({ form, validate, getPayload });
 </script>
 
-<template>
-  <div class="bat-scd-tab">
-    <ParamFormRow
-      :fields="[
-        {
-          label: '触发门限(A)',
-          modelValue: form.bat_SCDT,
-          options: scdtOptions,
-          loading: props.loadingRanges,
-          fieldKey: 'bat_SCDT'
-        },
-        {
-          label: '延时(us)',
-          modelValue: form.bat_SCDD,
-          options: scddOptions,
-          loading: props.loadingRanges,
-          fieldKey: 'bat_SCDD'
-        }
-      ]"
-      @update:field="handleUpdate"
-    />
-  </div>
-</template>
 
 <style scoped lang="scss">
 .bat-scd-tab {

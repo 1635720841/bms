@@ -1,3 +1,368 @@
+<template>
+  <div class="bms-manage-page">
+    <div class="bms-manage-header">
+      <div class="header-title">BMS管理</div>
+      <div class="header-search">
+        <el-input v-model="bmsIdInput" placeholder="请输入设备编码" clearable style="width: 300px" @keyup.enter="handleSearch">
+          <template #append>
+            <el-button :icon="Search" @click="handleSearch">查询</el-button>
+          </template>
+        </el-input>
+      </div>
+    </div>
+
+    <div v-loading="loading" class="dashboard-body">
+      <div class="col-side col-left">
+
+        <div class="dash-card battery-card">
+          <div class="card-head">
+            <span class="title">实时状态</span>
+            <span class="status-badge" :class="baseInfo?.online === 1 ? 'online' : 'offline'">
+              {{ baseInfo?.online === 1 ? "在线" : baseInfo?.online === 0 ? "离线" : "--" }}
+            </span>
+          </div>
+          <div class="battery-wrapper">
+            <div class="battery-3d-box" :style="{ '--fill-color': currentSocColor, '--glow-color': currentSocColor }">
+              <div class="battery-body">
+                <div class="fill" :style="{ width: (runInfo?.soc ?? 0) + '%' }">
+                  <div class="wave"></div>
+                </div>
+                <div class="lines"><span v-for="i in 6" :key="i"></span></div>
+                <div v-if="isCharging" class="bolt">
+                  <svg viewBox="0 0 32 32" class="bolt-icon" aria-hidden="true">
+                    <path d="M18 2L6 18h7l-1 12 12-16h-7L18 2z" fill="currentColor" stroke="currentColor"
+                      stroke-width="1.2" stroke-linejoin="round" />
+                  </svg>
+                </div>
+              </div>
+              <div class="battery-cap"></div>
+              <div class="overlay">
+                <span class="num">{{ runInfo?.soc ?? "--" }}</span><span class="unit">%</span>
+              </div>
+            </div>
+            <div class="battery-stats">
+              <div class="b-stat"><span class="l">剩余容量</span><span class="v">{{ runInfo?.remCapD ?? "--" }} Ah</span>
+              </div>
+              <div class="b-stat"><span class="l">满电容量</span><span class="v">{{ runInfo?.fullCapD ?? "--" }} Ah</span>
+              </div>
+              <div class="b-stat"><span class="l">循环次数</span><span class="v">{{ runInfo?.loop ?? "--" }} 次</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-card gauges-card">
+          <div class="gauges-grid">
+            <div class="gauge-cell" ref="gaugeVoltRef"></div>
+            <div class="gauge-cell" ref="gaugeCurrentRef"></div>
+            <div class="gauge-cell" ref="gaugeSocRef"></div>
+            <div class="gauge-cell" ref="gaugeSohRef"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-main">
+
+        <div class="chart-row">
+          <div class="dash-card vol-chart-card">
+            <div class="card-head">
+              <span class="title">电芯电压一致性 (mV)</span>
+              <div class="legend">
+                <span class="tag diff">压差: {{ cellVoltDiff ?? "--" }} mV</span>
+                <span class="tag max">最大: {{ maxCellVolt ?? "--" }} mV</span>
+                <span class="tag min">最小: {{ minCellVolt ?? "--" }} mV</span>
+              </div>
+            </div>
+            <div class="chart-content" ref="cellVoltsChartRef"></div>
+          </div>
+
+          <div class="dash-card temp-card">
+            <div class="card-head">
+              <span class="title">MOS & 环境温度 (°C)</span>
+
+            </div>
+            <div class="temp-body">
+              <!-- <div class="cell-temp-label">MOS & 环境</div> -->
+              <div class="temp-grid-horizontal">
+                <div class="temp-item">
+                  <span class="t-idx">MOS</span>
+                  <TempThermometer :temperature="runInfo?.mos_T ?? 0" />
+                  <span class="t-val">{{ runInfo?.mos_T }}°</span>
+                </div>
+                <div class="temp-item">
+                  <span class="t-idx">环境</span>
+                  <TempThermometer :temperature="runInfo?.env_T  ?? 0" />
+                  <span class="t-val">{{ runInfo?.env_T }}°</span>
+                </div>
+              </div>
+              <div class="divider"></div>
+
+              <div class="cell-temp-label">电芯温度 (°C)</div>
+              <div class="temp-grid-horizontal">
+                <div
+                  v-for="(t, idx) in (runInfo?.cell_T || [])"
+                  :key="`temp-${idx}`"
+                  class="temp-item"
+                >
+                  <span class="t-idx">#{{ idx + 1 }}</span>
+
+                  <TempThermometer :temperature="t" />
+
+                  <span class="t-val">{{ t }}°</span>
+                </div>
+              </div>
+            </div>
+        </div>
+      </div>
+
+       <div class="bottom-row">
+         <div class="dash-card tabs-card">
+          <el-tabs v-model="activeTab" class="custom-tabs">
+
+            <el-tab-pane label="基础档案" name="info">
+              <div class="info-grid-tab">
+                <div class="info-item">
+                  <span class="label">BMS ID</span>
+                  <span class="value mono highlight">{{ baseInfo?.bmsId }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">设备规格</span>
+                  <span class="value">{{ baseInfo?.cellCnt }}串 / {{ cellMatLabel(baseInfo?.cellMat) }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">额定容量</span>
+                  <span class="value">{{ baseInfo?.capactiyD }} Ah</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">电池编码 (BT)</span>
+                  <span class="value">{{ baseInfo?.btCode || '--' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">软件版本</span>
+                  <span class="value">{{ baseInfo?.version }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">IMSI</span>
+                  <span class="value">{{ baseInfo?.imsi }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">发货时间</span>
+                  <span class="value">{{ baseInfo?.outTimeF || '--' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">激活时间</span>
+                  <span class="value">{{ baseInfo?.activeTimeF || '--' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">最近续费时间</span>
+                  <span class="value">{{ baseInfo?.lastRenewalTimeF || '--' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">服务到期时间</span>
+                  <span class="value">{{ baseInfo?.srvEndTimeF || '--' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">服务价格</span>
+                  <span class="value">{{ baseInfo?.priceF || '--' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">数据更新时间</span>
+                  <span class="value">{{ runInfo?.timeF }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">三方后台</span>
+                  <span class="value">{{ baseInfo?.tServer || '--' }}</span>
+                </div>
+              </div>
+            </el-tab-pane>
+
+            <el-tab-pane label="电池状态" name="battery">
+              <div class="status-section">
+                <div class="section-title">保护状态</div>
+                <div class="status-grid">
+                  <div v-for="item in protect_bit_config" :key="'protect-' + item.bit" class="status-item"
+                    :class="protectBit(item.bit).isActive ? 'is-danger' : 'is-safe'">
+                    <!-- <span class="dot"></span> -->
+                    <span class="lbl">{{ item.label }}</span>
+                    <span class="val">{{ protectBit(item.bit).text }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="status-section">
+                <div class="section-title">系统状态</div>
+                <div class="status-grid">
+                  <div v-for="item in status_bit_config" :key="'status-' + item.bit" class="status-item"
+                    :class="statusBit(item).isGood ? 'is-safe' : 'is-warn'">
+                    <!-- <span class="dot"></span> -->
+                    <span class="lbl">{{ item.label }}</span>
+                    <span class="val">{{ statusBit(item).text }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="status-section">
+                <div class="section-title">开关状态</div>
+                <div class="status-grid">
+                  <div v-for="item in switch_fun_ctrl_bit_config" :key="'switch-' + item.bit" class="status-item"
+                    :class="switchBit(item).isOn ? 'is-safe' : 'is-off'">
+                    <!-- <span class="dot"></span> -->
+                    <span class="lbl">{{ item.label }}</span>
+                    <span class="val">{{ switchBit(item).text }}</span>
+                  </div>
+                </div>
+              </div>
+            </el-tab-pane>
+          </el-tabs>
+        </div>
+
+        <div class="dash-card warning-card">
+          <div class="card-head"><span class="title">告警信息</span></div>
+          <div class="warning-body">
+            <div v-if="!warningList || warningList.length === 0" class="empty-tip">暂无告警信息</div>
+            <div v-else class="warning-list">
+              <div
+                v-for="(item, idx) in warningList"
+                :key="idx"
+                class="warning-row"
+                :class="{ 'is-even': idx % 2 === 0 }">
+                <span class="w-time">{{ item.t }}</span>
+                <div class="w-items">
+                  <span
+                    v-for="warn in parseWarningBits(item.e)"
+                    :key="warn.bit"
+                    class="w-tag"
+                    :class="{ 'is-recover': warn.isRecover }">
+                    {{ warn.label }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+       </div>
+      </div>
+
+      <div class="col-side col-right">
+        <div class="dash-card control-card">
+          <div class="card-head"><span class="title">控制中心</span></div>
+          <div v-if="refreshing" class="refresh-overlay">
+            <div class="refresh-tip">
+              <el-icon class="is-loading">
+                <Loading />
+              </el-icon>
+              <span>指令已下发，即将刷新数据...</span>
+            </div>
+          </div>
+          <div class="ctrl-body">
+            <div v-if="bmsOp.chg || bmsOp.dschg" class="ctrl-group ctrl-group-charge">
+              <div class="g-title">充放电控制</div>
+              <div v-if="bmsOp.chg" class="btn-row">
+                <button type="button" class="c-btn primary" aria-label="开启充电" :disabled="cmdLoading"
+                  :class="{ 'is-loading': cmdLoading }" @click="handleFunCtrl('charge', 1)">
+                  <svg class="c-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                  </svg>
+                  <span>开启充电</span>
+                </button>
+                <button type="button" class="c-btn danger" aria-label="关闭充电" :disabled="cmdLoading"
+                  :class="{ 'is-loading': cmdLoading }" @click="handleFunCtrl('charge', 0)">
+                  <svg class="c-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                  </svg>
+                  <span>关闭充电</span>
+                </button>
+              </div>
+              <div v-if="bmsOp.dschg" class="btn-row">
+                <button type="button" class="c-btn primary" aria-label="开启放电" :disabled="cmdLoading"
+                  :class="{ 'is-loading': cmdLoading }" @click="handleFunCtrl('discharge', 1)">
+                  <svg class="c-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M5 12h14" />
+                    <path d="m12 5 7 7-7 7" />
+                  </svg>
+                  <span>开启放电</span>
+                </button>
+                <button type="button" class="c-btn danger" aria-label="关闭放电" :disabled="cmdLoading"
+                  :class="{ 'is-loading': cmdLoading }" @click="handleFunCtrl('discharge', 0)">
+                  <svg class="c-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M5 12h14" />
+                    <path d="m12 5 7 7-7 7" />
+                  </svg>
+                  <span>关闭放电</span>
+                </button>
+              </div>
+            </div>
+            <div v-if="bmsOp.blindchg || bmsOp.beep || bmsOp.predschg" class="ctrl-group">
+              <div class="g-title">功能开关</div>
+              <div class="btn-grid">
+                <template v-if="bmsOp.blindchg">
+                  <button class="c-btn" :disabled="cmdLoading" :class="{ 'is-loading': cmdLoading }"
+                    @click="handleFunCtrl('blindChg', 1)">
+                    允盲充
+                  </button>
+                  <button class="c-btn" :disabled="cmdLoading" :class="{ 'is-loading': cmdLoading }"
+                    @click="handleFunCtrl('blindChg', 0)">
+                    禁盲充
+                  </button>
+                </template>
+                <template v-if="bmsOp.beep">
+                  <button class="c-btn" :disabled="cmdLoading" :class="{ 'is-loading': cmdLoading }"
+                    @click="handleFunCtrl('beep', 1)">
+                    开蜂鸣
+                  </button>
+                  <button class="c-btn" :disabled="cmdLoading" :class="{ 'is-loading': cmdLoading }"
+                    @click="handleFunCtrl('beep', 0)">
+                    关蜂鸣
+                  </button>
+                </template>
+                <template v-if="bmsOp.predschg">
+                  <button class="c-btn" :disabled="cmdLoading" :class="{ 'is-loading': cmdLoading }"
+                    @click="handleFunCtrl('preventSpark', 1)">
+                    开防火
+                  </button>
+                  <button class="c-btn" :disabled="cmdLoading" :class="{ 'is-loading': cmdLoading }"
+                    @click="handleFunCtrl('preventSpark', 0)">
+                    关防火
+                  </button>
+                </template>
+              </div>
+            </div>
+
+            <div
+              v-if="bmsOp.scRecov || bmsOp.mosRecov || bmsOp.reset || bmsCfg.basic || bmsCfg.btCode || bmsCfg.tServer || bmsCfg.voltparams || bmsCfg.currparams || bmsCfg.tempparams"
+              class="ctrl-group">
+              <div class="g-title">维护操作</div>
+              <div class="btn-col">
+                <button v-if="bmsOp.scRecov" class="c-btn warn" :disabled="cmdLoading"
+                  :class="{ 'is-loading': cmdLoading }" @click="handleFunCtrl('scRecov', 1)">
+                  短路恢复
+                </button>
+                <button v-if="bmsOp.mosRecov" class="c-btn warn" :disabled="cmdLoading"
+                  :class="{ 'is-loading': cmdLoading }" @click="handleFunCtrl('mosFailRecov', 1)">
+                  MOS故障恢复
+                </button>
+                <button v-if="bmsOp.reset" class="c-btn danger full" :disabled="cmdLoading"
+                  :class="{ 'is-loading': cmdLoading }" @click="handleFunCtrl('reset', 1)">
+                  重启 BMS
+                </button>
+                <button
+                  v-if="bmsCfg.basic || bmsCfg.btCode || bmsCfg.tServer || bmsCfg.voltparams || bmsCfg.currparams || bmsCfg.tempparams"
+                  class="c-btn success full" @click="handleSetParams">参数配置</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ParamConfigDialog v-model="paramConfigVisible" :bms-id="paramConfigBmsId"
+      @success="loadDetail(paramConfigBmsId)" />
+  </div>
+</template>
+
 <script setup lang="ts">
 import { ref, watch, nextTick, onBeforeUnmount, computed, onMounted, onActivated } from "vue";
 import { useRouter, useRoute } from "vue-router";
@@ -479,371 +844,6 @@ function handleFunCtrl(func: FunCtrlFunc, op: 0 | 1) {
   sendFunCtrl(bmsId, func, op);
 }
 </script>
-
-<template>
-  <div class="bms-manage-page">
-    <div class="bms-manage-header">
-      <div class="header-title">BMS管理</div>
-      <div class="header-search">
-        <el-input v-model="bmsIdInput" placeholder="请输入设备编码" clearable style="width: 300px" @keyup.enter="handleSearch">
-          <template #append>
-            <el-button :icon="Search" @click="handleSearch">查询</el-button>
-          </template>
-        </el-input>
-      </div>
-    </div>
-
-    <div v-loading="loading" class="dashboard-body">
-      <div class="col-side col-left">
-
-        <div class="dash-card battery-card">
-          <div class="card-head">
-            <span class="title">实时状态</span>
-            <span class="status-badge" :class="baseInfo?.online === 1 ? 'online' : 'offline'">
-              {{ baseInfo?.online === 1 ? "在线" : baseInfo?.online === 0 ? "离线" : "--" }}
-            </span>
-          </div>
-          <div class="battery-wrapper">
-            <div class="battery-3d-box" :style="{ '--fill-color': currentSocColor, '--glow-color': currentSocColor }">
-              <div class="battery-body">
-                <div class="fill" :style="{ width: (runInfo?.soc ?? 0) + '%' }">
-                  <div class="wave"></div>
-                </div>
-                <div class="lines"><span v-for="i in 6" :key="i"></span></div>
-                <div v-if="isCharging" class="bolt">
-                  <svg viewBox="0 0 32 32" class="bolt-icon" aria-hidden="true">
-                    <path d="M18 2L6 18h7l-1 12 12-16h-7L18 2z" fill="currentColor" stroke="currentColor"
-                      stroke-width="1.2" stroke-linejoin="round" />
-                  </svg>
-                </div>
-              </div>
-              <div class="battery-cap"></div>
-              <div class="overlay">
-                <span class="num">{{ runInfo?.soc ?? "--" }}</span><span class="unit">%</span>
-              </div>
-            </div>
-            <div class="battery-stats">
-              <div class="b-stat"><span class="l">剩余容量</span><span class="v">{{ runInfo?.remCapD ?? "--" }} Ah</span>
-              </div>
-              <div class="b-stat"><span class="l">满电容量</span><span class="v">{{ runInfo?.fullCapD ?? "--" }} Ah</span>
-              </div>
-              <div class="b-stat"><span class="l">循环次数</span><span class="v">{{ runInfo?.loop ?? "--" }} 次</span></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="dash-card gauges-card">
-          <div class="gauges-grid">
-            <div class="gauge-cell" ref="gaugeVoltRef"></div>
-            <div class="gauge-cell" ref="gaugeCurrentRef"></div>
-            <div class="gauge-cell" ref="gaugeSocRef"></div>
-            <div class="gauge-cell" ref="gaugeSohRef"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-main">
-
-        <div class="chart-row">
-          <div class="dash-card vol-chart-card">
-            <div class="card-head">
-              <span class="title">电芯电压一致性 (mV)</span>
-              <div class="legend">
-                <span class="tag diff">压差: {{ cellVoltDiff ?? "--" }} mV</span>
-                <span class="tag max">最大: {{ maxCellVolt ?? "--" }} mV</span>
-                <span class="tag min">最小: {{ minCellVolt ?? "--" }} mV</span>
-              </div>
-            </div>
-            <div class="chart-content" ref="cellVoltsChartRef"></div>
-          </div>
-
-          <div class="dash-card temp-card">
-            <div class="card-head">
-              <span class="title">MOS & 环境温度 (°C)</span>
-
-            </div>
-            <div class="temp-body">
-              <!-- <div class="cell-temp-label">MOS & 环境</div> -->
-              <div class="temp-grid-horizontal">
-                <div class="temp-item">
-                  <span class="t-idx">MOS</span>
-                  <TempThermometer :temperature="runInfo?.mos_T ?? 0" />
-                  <span class="t-val">{{ runInfo?.mos_T }}°</span>
-                </div>
-                <div class="temp-item">
-                  <span class="t-idx">环境</span>
-                  <TempThermometer :temperature="runInfo?.env_T  ?? 0" />
-                  <span class="t-val">{{ runInfo?.env_T }}°</span>
-                </div>
-              </div>
-              <div class="divider"></div>
-
-              <div class="cell-temp-label">电芯温度 (°C)</div>
-              <div class="temp-grid-horizontal">
-                <div
-                  v-for="(t, idx) in (runInfo?.cell_T || [])"
-                  :key="`temp-${idx}`"
-                  class="temp-item"
-                >
-                  <span class="t-idx">#{{ idx + 1 }}</span>
-
-                  <TempThermometer :temperature="t" />
-
-                  <span class="t-val">{{ t }}°</span>
-                </div>
-              </div>
-            </div>
-        </div>
-      </div>
-
-       <div class="bottom-row">
-         <div class="dash-card tabs-card">
-          <el-tabs v-model="activeTab" class="custom-tabs">
-
-            <el-tab-pane label="基础档案" name="info">
-              <div class="info-grid-tab">
-                <div class="info-item">
-                  <span class="label">BMS ID</span>
-                  <span class="value mono highlight">{{ baseInfo?.bmsId }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">设备规格</span>
-                  <span class="value">{{ baseInfo?.cellCnt }}串 / {{ cellMatLabel(baseInfo?.cellMat) }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">额定容量</span>
-                  <span class="value">{{ baseInfo?.capactiyD }} Ah</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">电池编码 (BT)</span>
-                  <span class="value">{{ baseInfo?.btCode || '--' }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">软件版本</span>
-                  <span class="value">{{ baseInfo?.version }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">IMSI</span>
-                  <span class="value">{{ baseInfo?.imsi }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">发货时间</span>
-                  <span class="value">{{ baseInfo?.outTimeF || '--' }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">激活时间</span>
-                  <span class="value">{{ baseInfo?.activeTimeF || '--' }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">最近续费时间</span>
-                  <span class="value">{{ baseInfo?.lastRenewalTimeF || '--' }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">服务到期时间</span>
-                  <span class="value">{{ baseInfo?.srvEndTimeF || '--' }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">服务价格</span>
-                  <span class="value">{{ baseInfo?.priceF || '--' }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">数据更新时间</span>
-                  <span class="value">{{ runInfo?.timeF }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="label">三方后台</span>
-                  <span class="value">{{ baseInfo?.tServer || '--' }}</span>
-                </div>
-              </div>
-            </el-tab-pane>
-
-            <el-tab-pane label="电池状态" name="battery">
-              <div class="status-section">
-                <div class="section-title">保护状态</div>
-                <div class="status-grid">
-                  <div v-for="item in protect_bit_config" :key="'protect-' + item.bit" class="status-item"
-                    :class="protectBit(item.bit).isActive ? 'is-danger' : 'is-safe'">
-                    <!-- <span class="dot"></span> -->
-                    <span class="lbl">{{ item.label }}</span>
-                    <span class="val">{{ protectBit(item.bit).text }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="status-section">
-                <div class="section-title">系统状态</div>
-                <div class="status-grid">
-                  <div v-for="item in status_bit_config" :key="'status-' + item.bit" class="status-item"
-                    :class="statusBit(item).isGood ? 'is-safe' : 'is-warn'">
-                    <!-- <span class="dot"></span> -->
-                    <span class="lbl">{{ item.label }}</span>
-                    <span class="val">{{ statusBit(item).text }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="status-section">
-                <div class="section-title">开关状态</div>
-                <div class="status-grid">
-                  <div v-for="item in switch_fun_ctrl_bit_config" :key="'switch-' + item.bit" class="status-item"
-                    :class="switchBit(item).isOn ? 'is-safe' : 'is-off'">
-                    <!-- <span class="dot"></span> -->
-                    <span class="lbl">{{ item.label }}</span>
-                    <span class="val">{{ switchBit(item).text }}</span>
-                  </div>
-                </div>
-              </div>
-            </el-tab-pane>
-          </el-tabs>
-        </div>
-
-        <div class="dash-card warning-card">
-          <div class="card-head"><span class="title">告警信息</span></div>
-          <div class="warning-body">
-            <div v-if="!warningList || warningList.length === 0" class="empty-tip">暂无告警信息</div>
-            <div v-else class="warning-list">
-              <div
-                v-for="(item, idx) in warningList"
-                :key="idx"
-                class="warning-row"
-                :class="{ 'is-even': idx % 2 === 0 }">
-                <span class="w-time">{{ item.t }}</span>
-                <div class="w-items">
-                  <span
-                    v-for="warn in parseWarningBits(item.e)"
-                    :key="warn.bit"
-                    class="w-tag"
-                    :class="{ 'is-recover': warn.isRecover }">
-                    {{ warn.label }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-       </div>
-      </div>
-
-      <div class="col-side col-right">
-        <div class="dash-card control-card">
-          <div class="card-head"><span class="title">控制中心</span></div>
-          <div v-if="refreshing" class="refresh-overlay">
-            <div class="refresh-tip">
-              <el-icon class="is-loading">
-                <Loading />
-              </el-icon>
-              <span>指令已下发，即将刷新数据...</span>
-            </div>
-          </div>
-          <div class="ctrl-body">
-            <div v-if="bmsOp.chg || bmsOp.dschg" class="ctrl-group ctrl-group-charge">
-              <div class="g-title">充放电控制</div>
-              <div v-if="bmsOp.chg" class="btn-row">
-                <button type="button" class="c-btn primary" aria-label="开启充电" :disabled="cmdLoading"
-                  :class="{ 'is-loading': cmdLoading }" @click="handleFunCtrl('charge', 1)">
-                  <svg class="c-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                  </svg>
-                  <span>开启充电</span>
-                </button>
-                <button type="button" class="c-btn danger" aria-label="关闭充电" :disabled="cmdLoading"
-                  :class="{ 'is-loading': cmdLoading }" @click="handleFunCtrl('charge', 0)">
-                  <svg class="c-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                  </svg>
-                  <span>关闭充电</span>
-                </button>
-              </div>
-              <div v-if="bmsOp.dschg" class="btn-row">
-                <button type="button" class="c-btn primary" aria-label="开启放电" :disabled="cmdLoading"
-                  :class="{ 'is-loading': cmdLoading }" @click="handleFunCtrl('discharge', 1)">
-                  <svg class="c-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M5 12h14" />
-                    <path d="m12 5 7 7-7 7" />
-                  </svg>
-                  <span>开启放电</span>
-                </button>
-                <button type="button" class="c-btn danger" aria-label="关闭放电" :disabled="cmdLoading"
-                  :class="{ 'is-loading': cmdLoading }" @click="handleFunCtrl('discharge', 0)">
-                  <svg class="c-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M5 12h14" />
-                    <path d="m12 5 7 7-7 7" />
-                  </svg>
-                  <span>关闭放电</span>
-                </button>
-              </div>
-            </div>
-            <div v-if="bmsOp.blindchg || bmsOp.beep || bmsOp.predschg" class="ctrl-group">
-              <div class="g-title">功能开关</div>
-              <div class="btn-grid">
-                <template v-if="bmsOp.blindchg">
-                  <button class="c-btn" :disabled="cmdLoading" :class="{ 'is-loading': cmdLoading }"
-                    @click="handleFunCtrl('blindChg', 1)">
-                    允盲充
-                  </button>
-                  <button class="c-btn" :disabled="cmdLoading" :class="{ 'is-loading': cmdLoading }"
-                    @click="handleFunCtrl('blindChg', 0)">
-                    禁盲充
-                  </button>
-                </template>
-                <template v-if="bmsOp.beep">
-                  <button class="c-btn" :disabled="cmdLoading" :class="{ 'is-loading': cmdLoading }"
-                    @click="handleFunCtrl('beep', 1)">
-                    开蜂鸣
-                  </button>
-                  <button class="c-btn" :disabled="cmdLoading" :class="{ 'is-loading': cmdLoading }"
-                    @click="handleFunCtrl('beep', 0)">
-                    关蜂鸣
-                  </button>
-                </template>
-                <template v-if="bmsOp.predschg">
-                  <button class="c-btn" :disabled="cmdLoading" :class="{ 'is-loading': cmdLoading }"
-                    @click="handleFunCtrl('preventSpark', 1)">
-                    开防火
-                  </button>
-                  <button class="c-btn" :disabled="cmdLoading" :class="{ 'is-loading': cmdLoading }"
-                    @click="handleFunCtrl('preventSpark', 0)">
-                    关防火
-                  </button>
-                </template>
-              </div>
-            </div>
-
-            <div
-              v-if="bmsOp.scRecov || bmsOp.mosRecov || bmsOp.reset || bmsCfg.basic || bmsCfg.btCode || bmsCfg.tServer || bmsCfg.voltparams || bmsCfg.currparams || bmsCfg.tempparams"
-              class="ctrl-group">
-              <div class="g-title">维护操作</div>
-              <div class="btn-col">
-                <button v-if="bmsOp.scRecov" class="c-btn warn" :disabled="cmdLoading"
-                  :class="{ 'is-loading': cmdLoading }" @click="handleFunCtrl('scRecov', 1)">
-                  短路恢复
-                </button>
-                <button v-if="bmsOp.mosRecov" class="c-btn warn" :disabled="cmdLoading"
-                  :class="{ 'is-loading': cmdLoading }" @click="handleFunCtrl('mosFailRecov', 1)">
-                  MOS故障恢复
-                </button>
-                <button v-if="bmsOp.reset" class="c-btn danger full" :disabled="cmdLoading"
-                  :class="{ 'is-loading': cmdLoading }" @click="handleFunCtrl('reset', 1)">
-                  重启 BMS
-                </button>
-                <button
-                  v-if="bmsCfg.basic || bmsCfg.btCode || bmsCfg.tServer || bmsCfg.voltparams || bmsCfg.currparams || bmsCfg.tempparams"
-                  class="c-btn success full" @click="handleSetParams">参数配置</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <ParamConfigDialog v-model="paramConfigVisible" :bms-id="paramConfigBmsId"
-      @success="loadDetail(paramConfigBmsId)" />
-  </div>
-</template>
 
 <style scoped lang="scss">
 .bms-manage-page {

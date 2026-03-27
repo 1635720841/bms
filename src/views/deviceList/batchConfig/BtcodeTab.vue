@@ -1,3 +1,162 @@
+<template>
+  <el-form-item label="BT码">
+    <div class="btcode-textarea-wrap">
+      <el-input
+        v-model="modelValue"
+        type="textarea"
+        :rows="3"
+        readonly
+        placeholder="逗号、换行分割；只填 1 个 BT码 时会自动应用到所有设备"
+      />
+      <div class="btcode-buttons">
+        <el-button
+          type="primary"
+          class="btcode-copy-btn"
+          :disabled="!modelValue"
+          @click="handleCopyBtCodes"
+        >
+          复制
+        </el-button>
+        <el-button
+          type="danger"
+          class="btcode-clear-btn"
+          style="margin-left: 0;"
+          :disabled="!modelValue"
+          @click="emit('update:btcodeText', '')"
+        >
+          清除
+        </el-button>
+      </div>
+    </div>
+    <div class="hint">数量：{{ btCount }}</div>
+  </el-form-item>
+
+  <div class="bt-rule-card">
+    <div class="bt-rule-title">BT码生成规则</div>
+    <div class="bt-rule-body">
+      <el-row :gutter="16">
+        <el-col :span="12">
+          <el-form-item label="产品名称">
+            <span>BT</span>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="材料体系">
+            <el-select
+              v-model="selectedMaterial"
+              placeholder="请选择材料体系"
+              style="width: 100%"
+            >
+              <el-option
+                v-for="item in materialOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-row :gutter="16">
+        <el-col :span="12">
+          <el-form-item label="电压等级">
+            <el-select
+              v-model="btVoltageValue"
+              placeholder="30-99，可输入或选择"
+              style="width: 100%"
+              filterable
+              allow-create
+              default-first-option
+            >
+              <el-option
+                v-for="item in btVolOptions"
+                :key="item"
+                :label="item"
+                :value="String(item)"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="容量等级">
+            <el-select
+              v-model="btCapacityValue"
+              placeholder="20-99，可输入或选择"
+              style="width: 100%"
+              filterable
+              allow-create
+              default-first-option
+            >
+              <el-option
+                v-for="item in btCapacityOptions"
+                :key="item"
+                :label="item"
+                :value="String(item)"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-row :gutter="16">
+        <el-col :span="12">
+          <el-form-item label="循环寿命">
+            <el-select
+              v-model="btCycleLifeValue"
+              placeholder="10-40，可输入或选择"
+              style="width: 100%"
+              filterable
+              allow-create
+              default-first-option
+            >
+              <el-option
+                v-for="item in btLoopOptions"
+                :key="item"
+                :label="item"
+                :value="String(item)"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="厂家代码">
+            <el-input
+              v-model="btManufacturerValue"
+              maxlength="4"
+              placeholder="输入 4 位厂家代码（字母）"
+            />
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-row :gutter="16">
+        <el-col :span="12">
+          <el-form-item label="生产年份">
+            <el-select
+              v-model="btProductionYear"
+              placeholder="请选择年份"
+              style="width: 100%"
+            >
+              <el-option
+                v-for="item in yearOptions"
+                :key="item"
+                :label="`${item}年`"
+                :value="String(item).slice(2)"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+    </div>
+
+    <div class="bt-rule-actions">
+      <el-button @click="handleClearGenerateBtCode">清除</el-button>
+      <el-button type="primary" @click="handleGenerateBtCodes">生产BT码</el-button>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { ElMessage } from "element-plus";
@@ -203,164 +362,6 @@ async function handleCopyBtCodes() {
 }
 </script>
 
-<template>
-  <el-form-item label="BT码">
-    <div class="btcode-textarea-wrap">
-      <el-input
-        v-model="modelValue"
-        type="textarea"
-        :rows="3"
-        readonly
-        placeholder="逗号、换行分割；只填 1 个 BT码 时会自动应用到所有设备"
-      />
-      <div class="btcode-buttons">
-        <el-button
-          type="primary"
-          class="btcode-copy-btn"
-          :disabled="!modelValue"
-          @click="handleCopyBtCodes"
-        >
-          复制
-        </el-button>
-        <el-button
-          type="danger"
-          class="btcode-clear-btn"
-          style="margin-left: 0;"
-          :disabled="!modelValue"
-          @click="emit('update:btcodeText', '')"
-        >
-          清除
-        </el-button>
-      </div>
-    </div>
-    <div class="hint">数量：{{ btCount }}</div>
-  </el-form-item>
-
-  <div class="bt-rule-card">
-    <div class="bt-rule-title">BT码生成规则</div>
-    <div class="bt-rule-body">
-      <el-row :gutter="16">
-        <el-col :span="12">
-          <el-form-item label="产品名称">
-            <span>BT</span>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="材料体系">
-            <el-select
-              v-model="selectedMaterial"
-              placeholder="请选择材料体系"
-              style="width: 100%"
-            >
-              <el-option
-                v-for="item in materialOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
-          </el-form-item>
-        </el-col>
-      </el-row>
-
-      <el-row :gutter="16">
-        <el-col :span="12">
-          <el-form-item label="电压等级">
-            <el-select
-              v-model="btVoltageValue"
-              placeholder="30-99，可输入或选择"
-              style="width: 100%"
-              filterable
-              allow-create
-              default-first-option
-            >
-              <el-option
-                v-for="item in btVolOptions"
-                :key="item"
-                :label="item"
-                :value="String(item)"
-              />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="容量等级">
-            <el-select
-              v-model="btCapacityValue"
-              placeholder="20-99，可输入或选择"
-              style="width: 100%"
-              filterable
-              allow-create
-              default-first-option
-            >
-              <el-option
-                v-for="item in btCapacityOptions"
-                :key="item"
-                :label="item"
-                :value="String(item)"
-              />
-            </el-select>
-          </el-form-item>
-        </el-col>
-      </el-row>
-
-      <el-row :gutter="16">
-        <el-col :span="12">
-          <el-form-item label="循环寿命">
-            <el-select
-              v-model="btCycleLifeValue"
-              placeholder="10-40，可输入或选择"
-              style="width: 100%"
-              filterable
-              allow-create
-              default-first-option
-            >
-              <el-option
-                v-for="item in btLoopOptions"
-                :key="item"
-                :label="item"
-                :value="String(item)"
-              />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="厂家代码">
-            <el-input
-              v-model="btManufacturerValue"
-              maxlength="4"
-              placeholder="输入 4 位厂家代码（字母）"
-            />
-          </el-form-item>
-        </el-col>
-      </el-row>
-
-      <el-row :gutter="16">
-        <el-col :span="12">
-          <el-form-item label="生产年份">
-            <el-select
-              v-model="btProductionYear"
-              placeholder="请选择年份"
-              style="width: 100%"
-            >
-              <el-option
-                v-for="item in yearOptions"
-                :key="item"
-                :label="`${item}年`"
-                :value="String(item).slice(2)"
-              />
-            </el-select>
-          </el-form-item>
-        </el-col>
-      </el-row>
-    </div>
-
-    <div class="bt-rule-actions">
-      <el-button @click="handleClearGenerateBtCode">清除</el-button>
-      <el-button type="primary" @click="handleGenerateBtCodes">生产BT码</el-button>
-    </div>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .hint {

@@ -6,6 +6,7 @@ dist-ssr
 .eslintcache
 report.html
 vite.config.*.timestamp*
+备份
 
 yarn.lock
 npm-debug.log*
